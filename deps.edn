@@ -1,0 +1,134 @@
+{:paths
+ ["resources"]
+
+ :mvn/repos
+ {"datomic-releases" {:url "https://datomic-releases-1.s3.amazonaws.com/maven"}}
+
+ :deps
+ {org.clojure/core.async {:mvn/version "1.6.681"}
+  org.clojure/core.memoize {:mvn/version "1.1.266"}
+  org.clojure/core.cache {:mvn/version "1.1.234"}
+  org.clojure/data.json {:mvn/version "2.5.2"}
+  aero/aero {:mvn/version "1.1.6"}
+  integrant/integrant {:mvn/version "0.8.0"}
+  metosin/reitit {:mvn/version "0.9.2"}}
+
+ :aliases
+ {;; --- ADMIN ---
+  :prod-admin
+  {:ns-default admin.main
+   :extra-paths ["src/prod"]
+   :extra-deps {org.clojure/tools.logging {:mvn/version "1.2.4"}
+                ch.qos.logback/logback-classic {:mvn/version "1.5.6"}
+                ch.qos.logback/logback-core {:mvn/version "1.5.6"}
+                org.slf4j/jcl-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/jul-to-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/log4j-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/osgi-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/slf4j-api {:mvn/version "2.0.14"}
+                com.datomic/client-pro {:mvn/version "1.0.81"}
+                org.locationtech.proj4j/proj4j {:mvn/version "1.4.1"}
+                org.locationtech.proj4j-epsg/proj4j {:mvn/version "1.4.1"}
+                org.locationtech.jts/jts-core {:mvn/version "1.20.0"}}
+   :exec-fn init
+   :jvm-ops ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
+             "-Dlogback.configurationFile=resources/logback-admin.xml"]}
+
+  :dev-admin
+  {:extra-paths ["src/dev/admin"]
+   :extra-deps {}}
+
+  :test-admin
+  {:extra-paths ["src/test"]
+   :extra-deps {}}
+
+;; --- MCP ---
+  :prod-mcp
+  {:ns-default mcp.main
+   :extra-paths ["src/prod"]
+   :extra-deps {org.clojure/tools.logging {:mvn/version "1.2.4"}
+                ch.qos.logback/logback-classic {:mvn/version "1.5.6"}
+                ch.qos.logback/logback-core {:mvn/version "1.5.6"}
+                org.slf4j/jcl-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/jul-to-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/log4j-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/osgi-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/slf4j-api {:mvn/version "2.0.14"}
+                aero/aero {:mvn/version "1.1.6"}
+                com.datomic/client-pro {:mvn/version "1.0.81"}
+                org.locationtech.jts/jts-core {:mvn/version "1.20.0"}}
+   :jvm-ops ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
+             "-Dlogback.configurationFile=resources/logback-mcp.xml"]}
+
+  :dev-mcp
+  {:extra-paths ["src/dev/mcp"]
+   :extra-deps {}}
+
+  :test-mcp
+  {:extra-paths ["src/test"]
+   :extra-deps {}}
+
+;; --- API ---
+  :prod-api
+  {:ns-default api.main
+   :extra-paths ["src/prod"]
+   :extra-deps {org.clojure/tools.logging {:mvn/version "1.2.4"}
+                ch.qos.logback/logback-classic {:mvn/version "1.5.6"}
+                ch.qos.logback/logback-core {:mvn/version "1.5.6"}
+                org.slf4j/jcl-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/jul-to-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/log4j-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/osgi-over-slf4j {:mvn/version "2.0.14"}
+                org.slf4j/slf4j-api {:mvn/version "2.0.14"}
+                ring/ring-core {:mvn/version "1.9.5"}
+                ring/ring-defaults {:mvn/version "0.3.3"}
+                ring/ring-jetty-adapter {:mvn/version "1.9.5"}
+                ring-cors/ring-cors {:mvn/version "0.1.13"}
+                buddy/buddy-sign {:mvn/version "3.4.333"}
+                buddy/buddy-auth {:mvn/version "3.0.1"}
+                buddy/buddy-hashers {:mvn/version "2.0.167"}
+                aero/aero {:mvn/version "1.1.6"}
+                com.datomic/client-pro {:mvn/version "1.0.81"}
+                org.locationtech.jts/jts-core {:mvn/version "1.20.0"}
+                danlentz/clj-uuid {:mvn/version "0.2.5"}
+                metosin/spec-tools {:mvn/version "0.10.7"}}
+   :jvm-ops ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
+             "-Dlogback.configurationFile=resources/logback-api.xml"]}
+
+  :dev-api
+  {:extra-paths ["src/dev/api"]
+   :extra-deps {integrant/repl {:mvn/version "0.4.0"}
+                com.datomic/local {:mvn/version "1.0.276"}}
+   :main-opts ["-m" "clj-kondo.main"
+               "--middleware" "[refactor-nrepl.middleware/wrap-refactor cider.nrepl/cider-middleware]"
+               "--interactive"]}
+
+  :test-api
+  {:extra-paths ["src/test"]
+   :extra-deps {com.datomic/local {:mvn/version "1.0.276"}
+                lambdaisland/kaocha {:mvn/version "1.91.1392"}
+                ring/ring-mock      {:mvn/version "0.4.0"}}
+   :main-opts ["-m" "kaocha.runner"]}
+
+;; --- UI ---
+  :prod-ui
+  {:extra-paths ["src/prod"]
+   :extra-deps {reagent/reagent {:mvn/version "2.0.0"}
+                datascript/datascript {:mvn/version "1.5.4"}}}
+
+  :dev-ui
+  {:extra-paths ["src/dev/ui"]
+   :extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.36"}
+                thheller/shadow-cljs {:mvn/version "3.1.1"}
+                mhuebert/shadow-env {:mvn/version "0.1.6"}
+                integrant/repl {:mvn/version "0.4.0"}}}
+
+  :test-ui
+  {:extra-paths ["src/test"]
+   :extra-deps {day8.re-frame/test {:mvn/version "0.1.7"}}}
+
+;; --- uberjar ---
+  :uberjar
+  {:deps {org.clojure/tools.build {:mvn/version "0.10.7"}}
+   :jvm-ops ["-Dclojure.compiler.direct-linking=true"]
+   :main-opts ["-e" "(clojure.tools.build.api/compile-java)" "-m" "clojure.tools.build.api" "-fn" "uber"]}}}

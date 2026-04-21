@@ -1,0 +1,47 @@
+{
+  "name": "shadowcljs-reagent-reframe-tailwind",
+  "description": "A generic frontend SPA template.",
+  "author": "Dudley Craig",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "postcss:watch": "npx postcss ./src/prod/style/ui.css -o ./resources/public/css/ui.css --verbose -w",
+    "postcss:build": "npx postcss ./src/prod/style/ui.css -o ./resources/public/css/ui.css --verbose",
+    "postcss:release": "npx cross-env NODE_ENV=production postcss ./src/prod/style/ui.css -o ./resources/public/css/ui.css --verbose",
+    "shadow:server": "npx shadow-cljs server",
+    "shadow:watch": "npx shadow-cljs watch :ui",
+    "comment": "on connecting to nREPL via either shadow:cli:repl or shadow:npm:repl, remember to switch to correct build id using cljs.user=> (shadow.cljs.devtools.api/nrepl-select :ui)",
+    "shadow:npm:repl": "npx shadow-cljs clj-repl :ui",
+    "shadow:cli:repl": "clj -Sdeps '{:deps {nrepl/nrepl {:mvn/version \"1.5.1\"}}}' -M -m nrepl.cmdline --connect --port 7888",
+    "shadow:release": "npx shadow-cljs release ui"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.5",
+    "@tailwindcss/typography": "^0.5.19",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "cssnano": "^7.0.6",
+    "daisyui": "^5.0.43",
+    "global-jsdom": "^27.0.0",
+    "jest": "^30.0.3",
+    "jsdom": "^27.1.0",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.4.38",
+    "postcss-cli": "^11.0.0",
+    "postcss-nesting": "^13.0.1",
+    "shadow-cljs": "^3.1.1",
+    "tailwindcss": "^4.1.5"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.1.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "proj4": "2.20.2",
+    "jsts": "2.11.3"
+  }
+}

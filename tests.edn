@@ -1,0 +1,4 @@
+#kaocha/v1
+ {:tests [{:id           :api
+           :test-paths   ["src/test/api"]
+           :ns-patterns  ["-test$"]}]}

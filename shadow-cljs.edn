@@ -1,0 +1,22 @@
+{:deps
+ {:aliases
+  [:conjure ;; NOTE: :conjure alias loaded from ~/.clojure/deps.edn
+   :prod-ui :dev-ui :test-ui]}
+
+ :nrepl
+ {:port 7888}
+
+ :builds
+ {:ui
+  {:target :browser
+   :output-dir "resources/public/js"
+   :asset-path "/js"
+   :modules {:ui {:init-fn ui.main/init}}
+   :build-hooks [(shadow-env.core/hook)]
+   :devtools {:watch-dir "resources/public" :http-root "resources/public" :http-port 3001}
+   :compiler-options {:optimizations :none}
+   :closure-defines {config/profile "dev" config/base-url "http://localhost:3001"}}}}
+
+
+
+

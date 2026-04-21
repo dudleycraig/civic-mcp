@@ -1,0 +1,44 @@
+{:api
+ {:database
+  {:datomic
+   {:db-name #env "DATOMIC_DB_NAME"
+
+    :client
+    #profile {;; com.datomic/client-pro (datomic.client.api) On-Prem (locally hosted),
+              ;; thin remote client <-> peer server (query engine and cache) <-> transactor <-> 3rd party storage
+              :prod     {:server-type         :peer-server
+                         :access-key          #env "DATOMIC_ACCESS_KEY"
+                         :secret              #env "DATOMIC_SECRET"
+                         :endpoint            #env "DATOMIC_PEER_HOST"
+                         :validate-hostnames  false}
+
+              ;; com.datomic/local (datomic.client.api),
+              ;; fat peer (query engine, cache and storage)
+              :dev      {:server-type         :datomic-local
+                         :system              "civic-pulse-test"
+                         :storage-dir         :mem}
+
+              ;; com.datomic/local (datomic.client.api),
+              ;; fat peer (query engine, cache and storage)
+              :test     {:server-type         :datomic-local
+                         :system              "civic-pulse-test"
+                         :storage-dir         :mem}}
+
+    :peer
+    {:uri    #env "DATOMIC_TRANSACTOR_URI"}}}
+
+  :http
+  {:protocol "http"
+   :hostname "localhost"
+   :port 3001}
+
+  :authentication
+  {:alg :rs256
+   :secret "password"
+   :private-key "resources/.ssl/dev-token-private.pem"
+   :public-key "resources/.ssl/dev-token-public.pem"
+   :max-age 16
+   :secure #profile {:prod true :test false :dev false}
+   :claim
+   {:iss "127.0.0.1"
+    :aud "127.0.0.1"}}}}
