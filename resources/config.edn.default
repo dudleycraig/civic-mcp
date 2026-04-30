@@ -29,7 +29,7 @@
 
   :http
   {:protocol "http"
-   :hostname "localhost"
+   :host "localhost"
    :port 3001}
 
   :authentication

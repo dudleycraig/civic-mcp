@@ -1,21 +1,28 @@
-{:deps
- {:aliases
-  [:conjure ;; NOTE: :conjure alias loaded from ~/.clojure/deps.edn
-   :prod-ui :dev-ui :test-ui]}
+{:deps      {:aliases
+             [:conjure ;; NOTE: :conjure alias loaded from ~/.clojure/deps.edn
+              :prod-ui :dev-ui :test-ui]}
 
- :nrepl
- {:port 7888}
+ :dev-http  {#shadow/env ["SHADOW_PORT" :as :int] "resources/public"}
 
- :builds
- {:ui
-  {:target :browser
-   :output-dir "resources/public/js"
-   :asset-path "/js"
-   :modules {:ui {:init-fn ui.main/init}}
-   :build-hooks [(shadow-env.core/hook)]
-   :devtools {:watch-dir "resources/public" :http-root "resources/public" :http-port 3001}
-   :compiler-options {:optimizations :none}
-   :closure-defines {config/profile "dev" config/base-url "http://localhost:3001"}}}}
+ :nrepl     {:port 7888}
+
+ :builds    {:ui
+             {:target           :browser
+              :output-dir       "resources/public/js"
+              :asset-path       "/js"
+              :modules          {:ui {:init-fn ui.main/init}}
+              :build-hooks      [(shadow-env.core/hook)]
+              :devtools         {:watch-dir "resources/public"}
+              :compiler-options {:optimizations :none}
+              :closure-defines  {ui.system.configuration/shadow-active   #shadow/env ["SHADOW_ACTIVE" {:as :bool}]
+                                 ui.system.configuration/shadow-protocol #shadow/env "SHADOW_PROTOCOL"
+                                 ui.system.configuration/shadow-host     #shadow/env "SHADOW_HOST"
+                                 ui.system.configuration/shadow-port     #shadow/env ["SHADOW_PORT" {:as :int}]
+                                 ui.system.configuration/http-cors       #shadow/env ["HTTP_CORS" {:as :bool}]
+                                 ui.system.configuration/http-protocol   #shadow/env "HTTP_PROTOCOL"
+                                 ui.system.configuration/http-host       #shadow/env "HTTP_HOST"
+                                 ui.system.configuration/http-port       #shadow/env ["HTTP_PORT" {:as :int}]
+                                 ui.main/profile                         #shadow/env "PROFILE"}}}}
 
 
 

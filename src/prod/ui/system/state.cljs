@@ -1,10 +1,11 @@
-(ns system.state
+(ns ui.system.state
   (:require
+   [reagent.core]
    [integrant.core]))
 
 (defn init
   [configuration]
-  {})
+  (reagent.core/atom {}))
 
 (defn halt
   []

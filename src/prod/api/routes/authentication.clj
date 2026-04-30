@@ -1,4 +1,5 @@
 (ns api.routes.authentication
+  "semantic adherence to RFC 9110, RFC 7617, RFC 6265bis, RFC 7519 and OWASP Security"
   (:require
    [clojure.spec.alpha]
    [clojure.string]
@@ -17,7 +18,7 @@
     (when (clojure.string/starts-with? authentication-header "Basic ")
       (let [decoded (String. (.decode (java.util.Base64/getDecoder) (subs authentication-header 6)) "UTF-8")
             [email password] (clojure.string/split decoded #":" 2)]
-        {:email email :password password}))))
+        {:user/email email :user/password password}))))
 
 (defn login-success-handler
   [now configuration public-user]
@@ -42,34 +43,35 @@
                                            :message/timestamp (.toString now)}}}]
     (-> (ring.util.response/response body)
         (ring.util.response/status 200)
-        (ring.util.response/set-cookie "token" token {:http-only true
-                                                      :secure secure
-                                                      :same-site :lax
-                                                      :path "/"
-                                                      :max-age (* max-age 3600)}))))
+        (ring.util.response/header "Cache-Control" "no-store")
+        (ring.util.response/set-cookie "token" token {:http-only true :secure secure :same-site :lax :path "/" :max-age (* max-age 3600)}))))
 
 (defn login-error-handler
-  [now secure]
-  (let [body {:messaging/messages {::login-error-handler
-                                   {:message/status :error
-                                    :message/text "Login Failed"
-                                    :message/timestamp (.toString now)}}}]
-    (-> (ring.util.response/response body)
-        (ring.util.response/status 401)
-        (ring.util.response/set-cookie "token" "" {:http-only true :path "/" :max-age -1 :secure secure}))))
+  ([now secure]
+   (login-error-handler now secure "Invalid email or password"))
+  ([now secure message]
+   (let [body {:messaging/messages {::login-error-handler
+                                    {:message/status :error
+                                     :message/text message
+                                     :message/timestamp (.toString now)}}}]
+     (-> (ring.util.response/response body)
+         (ring.util.response/status 401)
+         ;; we deviate slightly from RFC 9110 as the browser popup is more a hinderance.
+         ;; (ring.util.response/header "WWW-Authenticate" "Basic realm=\"CIVIC ZA API\"")
+         (ring.util.response/header "Cache-Control" "no-store")
+         (ring.util.response/set-cookie "token" "" {:http-only true :secure secure :path "/" :max-age -1})))))
 
 (defn get-routes
   [authentication]
   ["/authentication"
-
    ["/login"
     {:name        ::login
      :middleware  [[buddy.auth.middleware/wrap-authentication authentication]]
-     :get         {:summary   "authenticates a user"
+     :post        {:summary   "Basic user authentication."
                    :handler   (fn [{{{query-worker :query} :workers} :database configuration :configuration :as request}]
                                 (let [now    (java.time.Instant/now)
                                       secure (get-in configuration [:api :authentication :secure])
-                                      {email :email password :password} (decode-basic-authentication request)]
+                                      {email :user/email password :user/password} (decode-basic-authentication request)]
                                   (if-let [[[private-user]] (when (and email password) (common.entities.user/get-user-by-email query-worker email))]
                                     (if-let [public-user (and private-user (buddy.hashers/check password (:user/hash private-user)) (common.entities.user/private->public private-user))]
                                       (login-success-handler now configuration public-user)
@@ -78,14 +80,20 @@
 
    ["/logout"
     {:name        ::logout
-     :get         {:summary   "unauthenticates a user"
-                   :handler   (fn [{configuration :configuration}]
-                                (let [now    (java.time.Instant/now)
-                                      secure (get-in configuration [:api :authentication :secure])
-                                      body   {:messaging/messages {::get-routes
-                                                                   {:message/status :success
-                                                                    :message/text "Logout Successful"
-                                                                    :message/timestamp (.toString now)}}}]
-                                  (-> (ring.util.response/response body)
-                                      (ring.util.response/status 200)
-                                      (ring.util.response/set-cookie "token" "" {:http-only true :path "/" :max-age -1 :secure secure}))))}}]])
+     :post         {:summary   "unauthenticates a user"
+                    :handler   (fn [{configuration :configuration}]
+                                 (let [now    (java.time.Instant/now)
+                                       secure (get-in configuration [:api :authentication :secure])
+                                       body   {:messaging/messages {::get-routes
+                                                                    {:message/status :success
+                                                                     :message/text "Logout Successful"
+                                                                     :message/timestamp (.toString now)}}}]
+                                   (-> (ring.util.response/response body)
+                                       (ring.util.response/status 200)
+                                       (ring.util.response/header "Cache-Control" "no-store")
+                                       (ring.util.response/set-cookie "token" "" {:http-only true :path "/" :max-age -1 :secure secure}))))}}]])
+
+
+
+
+

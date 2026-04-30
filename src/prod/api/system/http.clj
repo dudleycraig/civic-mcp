@@ -5,14 +5,15 @@
    [ring.adapter.jetty]))
 
 (defn init
-  [{{{protocol :protocol hostname :hostname port :port} :http} :api} router]
-  (when-not (and protocol hostname port)
+  [{{{protocol :protocol host :host port :port} :http} :api} router]
+  (println "protocol" protocol "host" host "port" port)
+  (when-not (and protocol host port)
     (throw
      (ex-info
       "HTTP Error, Invalid Configuration"
       {::http {:status :error :code 500}})))
   (clojure.tools.logging/info
-   "Initializing HTTP Service on " protocol "://" hostname ":" port " ...")
+   "Initializing HTTP Service on " protocol "://" host ":" port " ...")
   (ring.adapter.jetty/run-jetty router {:port port :join? false}))
 
 (defn halt

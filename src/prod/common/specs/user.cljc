@@ -56,6 +56,14 @@
     :opt [])
    (common.specs.utilities/not-contains-many? :user/password :user/hash)))
 
+;; a user that contains a hashed password :user/hash
+(clojure.spec.alpha/def :user/credentials
+  (clojure.spec.alpha/and
+   (clojure.spec.alpha/keys
+    :req [:user/email
+          :user/password])))
+
+
 
 
 

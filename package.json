@@ -1,6 +1,6 @@
 {
-  "name": "shadowcljs-reagent-reframe-tailwind",
-  "description": "A generic frontend SPA template.",
+  "name": "civic-mcp",
+  "description": "UI of API",
   "author": "Dudley Craig",
   "version": "0.0.1",
   "private": true,

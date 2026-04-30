@@ -2,15 +2,18 @@
   (:require
    [clojure.tools.logging]
    [clojure.spec.alpha]
+   [clojure.string]
    [buddy.auth]
    [buddy.auth.middleware]
    [reitit.ring.middleware.muuntaja]
    [reitit.ring.coercion]
+   [ring.middleware.cors :refer [wrap-cors]]
    [reitit.coercion.spec]
    [reitit.swagger]
    [reitit.swagger-ui]
    [reitit.openapi]
    [ring.util.response]
+   [api.routes.csrf]
    [api.routes.authentication]
    [api.routes.administrator]
    [api.routes.ping]
@@ -83,6 +86,46 @@
                (catch clojure.lang.ExceptionInfo  exception (ex-handler exception))
                (catch Exception                   exception (exception-handler exception)))))})
 
+(defn cors-middleware
+  [{{http :http shadow :shadow} :api}]
+  {:name ::cors
+   :wrap (fn [handler]
+           (let [cors-handler (wrap-cors
+                               handler
+                               :access-control-allow-origin       (re-pattern (str (:protocol http) "://" (:host http) ":" (if (:active shadow) (:port shadow) (:port http))))
+                               :access-control-allow-methods      [:get :put :post :delete :options]
+                               :access-control-allow-credentials  "true"
+                               :access-control-allow-headers      #{"x-jnet-api" "x-csrf-token" "x-requested-with" "accept" "accept-encoding" "accept-language" "set-cookie" "authorization" "content-type" "origin"})]
+             (fn [request]
+               (if (:cors http)
+                 (cors-handler request)
+                 (handler request)))))})
+
+(defn csrf-middleware
+  []
+  {:name ::csrf
+   :wrap (fn [handler]
+           (fn [request]
+             (let [token-cookie (get-in request [:cookies "csrf-token" :value])
+                   token-header (get-in request [:headers "x-csrf-token"])
+                   http-method  (:request-method request)]
+               (if (contains? #{:post :put :delete :patch} http-method)
+                 (if (and token-cookie token-header (= token-cookie token-header))
+                   (handler request)
+                   (->
+                    (ring.util.response/response
+                     {:messaging/messages
+                      {::wrap-csrf
+                       {:message/status :error
+                        :message/text "Invalid CSRF Token"
+                        :message/timestamp (.toString (java.time.Instant/now))}}})
+                    (ring.util.response/status 403)))
+                 (let [response (handler request)]
+                   (if (clojure.string/blank? token-cookie)
+                     (let [new-token (clojure.string/replace (.toString (java.util.UUID/randomUUID)) #"-" "")]
+                       (ring.util.response/set-cookie response "csrf-token" new-token {:http-only false :path "/" :same-site :lax}))
+                     response))))))})
+
 (defn configuration-middleware
   [configuration]
   {:name ::configuration
@@ -101,10 +144,12 @@
   [configuration database authentication]
   [""
    {:middleware
-    [reitit.ring.middleware.muuntaja/format-middleware
+    [(cors-middleware configuration)
+     reitit.ring.middleware.muuntaja/format-middleware
      (configuration-middleware configuration)
      (database-middleware database)
      (exception-middleware)
+     (csrf-middleware)
      reitit.ring.coercion/coerce-exceptions-middleware
      reitit.ring.coercion/coerce-request-middleware
      reitit.ring.coercion/coerce-response-middleware]
@@ -135,6 +180,8 @@
            :handler (reitit.swagger-ui/create-swagger-ui-handler
                      {:url "/swagger.json"
                       :config {:validatorUrl nil}})}}]
+
+   (api.routes.csrf/get-routes)
 
    (api.routes.authentication/get-routes
     authentication)

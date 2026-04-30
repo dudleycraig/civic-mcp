@@ -1,23 +1,22 @@
-(ns system.services
+(ns ui.system.services
   (:require
-   [integrant.core :refer [ref]]
-   [system.configuration]
-   [system.cache]
-   [system.state]
-   [system.router]
-   [system.view]))
+   [integrant.core :refer [ref] :rename {ref iref}]
+   [ui.system.configuration]
+   [ui.system.cache]
+   [ui.system.state]
+   [ui.system.router]
+   [ui.system.view]))
 
 (defn create-system
   [profile]
-  {:system.configuration/service {:profile profile}
-   :system.cache/service         {:configuration (ref :system.configuration/service)}
-   :system.state/service         {:configuration (ref :system.configuration/service)}
-   :system.router/service        {:configuration (ref :system.configuration/service)
-                                  :state (ref :system.state/service)}
-   :system.view/service          {:configuration (ref :system.configuration/service)
-                                  :state (ref :system.state/service)
-                                  :router (ref :system.router/service)
-                                  :cache  (ref :system.cache/service)}})
+  {:ui.system.configuration/service {:profile profile}
+   :ui.system.cache/service         {:configuration   (iref :ui.system.configuration/service)}
+   :ui.system.state/service         {:configuration   (iref :ui.system.configuration/service)}
+   :ui.system.router/service        {:configuration   (iref :ui.system.configuration/service)
+                                     :state           (iref :ui.system.state/service)}
+   :ui.system.view/service          {:configuration   (iref :ui.system.configuration/service)
+                                     :state           (iref :ui.system.state/service)
+                                     :router          (iref :ui.system.router/service)}})
 
 (defn init
   [profile]
