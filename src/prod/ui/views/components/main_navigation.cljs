@@ -23,13 +23,10 @@
     [nav-route match-name route]))
 
 (defn view
-  [{{[_root-path & routes] :routes match :match} :router :as props}]
-  (let [{{match-name :name} :data} @match]
+  [{{[_root-path & routes] :router/routes route-state :route/state} :router :as props}]
+  (let [{{route-name :name} :data} @route-state]
     [:nav
      [:ul.menu
       (dissoc props :router)
       (for [[_route-path route] routes]
-        (render-nav-item match-name route))]]))
-
-
-
+        (render-nav-item route-name route))]]))

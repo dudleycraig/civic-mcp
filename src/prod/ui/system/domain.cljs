@@ -1,4 +1,4 @@
-(ns ui.system.state
+(ns ui.system.domain
   (:require
    [reagent.core]
    [integrant.core]))

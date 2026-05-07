@@ -1,5 +1,5 @@
 (ns api.routes.authentication
-  "semantic adherence to RFC 9110, RFC 7617, RFC 6265bis, RFC 7519 and OWASP Security"
+  "semantic adherence to RFC 9110, RFC 7617, RFC 6265bis, RFC 7519, RFC 6750, RFC 8725 and OWASP Security"
   (:require
    [clojure.spec.alpha]
    [clojure.string]
@@ -21,45 +21,35 @@
         {:user/email email :user/password password}))))
 
 (defn login-success-handler
-  [now configuration public-user]
-  (let [auth-config (:authentication (:api configuration))
-        max-age     (:max-age auth-config)
-        secure      (:secure auth-config)
-        claim-config (:claim auth-config)
-        exp         (.plus now max-age java.time.temporal.ChronoUnit/HOURS)
-        claim       {:iat (.getEpochSecond now)
-                     :exp (.getEpochSecond exp)
-                     :iss (:iss claim-config)
-                     :aud (:aud claim-config)
-                     :sub (:user/uuid public-user)
-                     :jti (common.entities.utilities/generate-uuid)
-                     :data {:user/email (:user/email public-user)
-                            :user/roles (:user/roles public-user)}}
-        token       (api.system.authentication/encode-token configuration claim)
-        body        {:user public-user
-                     :messaging/messages {::login-success-handler
-                                          {:message/status :success
-                                           :message/text "Login Successful"
-                                           :message/timestamp (.toString now)}}}]
-    (-> (ring.util.response/response body)
+  [configuration public-user]
+  (let [now           (java.time.Instant/now)
+        auth-config   (:authentication (:api configuration))
+        max-age       (:max-age auth-config)
+        secure        (:secure auth-config)
+        claim-config  (:claim auth-config)
+        exp           (.plus now max-age java.time.temporal.ChronoUnit/HOURS)
+        jti           (common.entities.utilities/generate-uuid)
+        claim         {:iat (.getEpochSecond now)
+                       :exp (.getEpochSecond exp)
+                       :iss (:iss claim-config)
+                       :aud (:aud claim-config)
+                       :sub (:user/uuid public-user)
+                       :jti jti
+                       :data {:user/email (:user/email public-user)
+                              :user/roles (:user/roles public-user)}}
+        token         (api.system.authentication/encode-token configuration claim)]
+    (-> (ring.util.response/response (assoc public-user :auth/jti jti))
         (ring.util.response/status 200)
         (ring.util.response/header "Cache-Control" "no-store")
-        (ring.util.response/set-cookie "token" token {:http-only true :secure secure :same-site :lax :path "/" :max-age (* max-age 3600)}))))
+        (ring.util.response/set-cookie "session-token" token {:http-only true :secure secure :same-site :lax :path "/" :max-age (* max-age 3600)}))))
 
 (defn login-error-handler
-  ([now secure]
-   (login-error-handler now secure "Invalid email or password"))
-  ([now secure message]
-   (let [body {:messaging/messages {::login-error-handler
-                                    {:message/status :error
-                                     :message/text message
-                                     :message/timestamp (.toString now)}}}]
-     (-> (ring.util.response/response body)
-         (ring.util.response/status 401)
-         ;; we deviate slightly from RFC 9110 as the browser popup is more a hinderance.
-         ;; (ring.util.response/header "WWW-Authenticate" "Basic realm=\"CIVIC ZA API\"")
-         (ring.util.response/header "Cache-Control" "no-store")
-         (ring.util.response/set-cookie "token" "" {:http-only true :secure secure :path "/" :max-age -1})))))
+  [configuration]
+  (let [secure (get-in configuration [:api :authentication :secure])]
+    (-> (ring.util.response/response nil)
+        (ring.util.response/status 401)
+        (ring.util.response/header "Cache-Control" "no-store")
+        (ring.util.response/set-cookie "session-token" "" {:http-only true :secure secure :path "/" :max-age -1}))))
 
 (defn get-routes
   [authentication]
@@ -67,31 +57,34 @@
    ["/login"
     {:name        ::login
      :middleware  [[buddy.auth.middleware/wrap-authentication authentication]]
-     :post        {:summary   "Basic user authentication."
+     :post        {:summary   "instantiates a session"
                    :handler   (fn [{{{query-worker :query} :workers} :database configuration :configuration :as request}]
-                                (let [now    (java.time.Instant/now)
-                                      secure (get-in configuration [:api :authentication :secure])
-                                      {email :user/email password :user/password} (decode-basic-authentication request)]
+                                (let [{email :user/email password :user/password} (decode-basic-authentication request)]
                                   (if-let [[[private-user]] (when (and email password) (common.entities.user/get-user-by-email query-worker email))]
                                     (if-let [public-user (and private-user (buddy.hashers/check password (:user/hash private-user)) (common.entities.user/private->public private-user))]
-                                      (login-success-handler now configuration public-user)
-                                      (login-error-handler now secure))
-                                    (login-error-handler now secure))))}}]
+                                      (login-success-handler configuration public-user)
+                                      (login-error-handler configuration))
+                                    (login-error-handler configuration))))}}]
+
+   ["/session"
+    ["/verify"
+     {:name        ::session
+      :middleware  [[buddy.auth.middleware/wrap-authentication authentication]]
+      :get         {:summary   "verifies an existing session"
+                    :handler   (fn [{configuration :configuration :as request}]
+                                 (if-let [identity (buddy.auth/authenticated? request)]
+                                   (ring.util.response/response identity)
+                                   (login-error-handler configuration)))}}]]
 
    ["/logout"
     {:name        ::logout
-     :post         {:summary   "unauthenticates a user"
-                    :handler   (fn [{configuration :configuration}]
-                                 (let [now    (java.time.Instant/now)
-                                       secure (get-in configuration [:api :authentication :secure])
-                                       body   {:messaging/messages {::get-routes
-                                                                    {:message/status :success
-                                                                     :message/text "Logout Successful"
-                                                                     :message/timestamp (.toString now)}}}]
-                                   (-> (ring.util.response/response body)
-                                       (ring.util.response/status 200)
-                                       (ring.util.response/header "Cache-Control" "no-store")
-                                       (ring.util.response/set-cookie "token" "" {:http-only true :path "/" :max-age -1 :secure secure}))))}}]])
+     :post        {:summary   "deletes a session"
+                   :handler   (fn [{configuration :configuration}]
+                                (let [secure (get-in configuration [:api :authentication :secure])]
+                                  (-> (ring.util.response/response nil)
+                                      (ring.util.response/status 200)
+                                      (ring.util.response/header "Cache-Control" "no-store")
+                                      (ring.util.response/set-cookie "session-token" "" {:http-only true :path "/" :max-age -1 :secure secure}))))}}]])
 
 
 

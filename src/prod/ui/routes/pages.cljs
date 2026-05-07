@@ -9,6 +9,7 @@
    [datascript.core]
    [common.specs.user]
 
+   [ui.controllers.authorization]
    [ui.controllers.login]
 
    [ui.views.pages.login]
@@ -17,11 +18,40 @@
    [ui.views.pages.about]
    [ui.views.pages.contact]))
 
-(defn get-routes [configuration state]
-  [["login"
+(defn get-routes [configuration session domain]
+  ["/"
+   [""
+    {:name ::home
+     :controllers [(ui.controllers.authorization/controller configuration session domain)]
+     :view ui.views.pages.home/view
+     :label "Home"
+     :icon solid-icons-24/HomeIcon
+     :roles ["administrator"]
+     :layout :standard}]
+
+   ["about"
+    {:name ::about
+     :controllers [(ui.controllers.authorization/controller configuration session domain)]
+     :view ui.views.pages.about/view
+     :label "About"
+     :icon solid-icons-24/IdentificationIcon
+     :roles []
+     :layout :standard}]
+
+   ["contact"
+    {:name ::contact
+     :controllers [(ui.controllers.authorization/controller configuration session domain)]
+     :view ui.views.pages.contact/view
+     :label "Contact"
+     :icon solid-icons-24/AtSymbolIcon
+     :roles []
+     :layout :standard}]
+
+   ["login"
     {:name ::login
+     :controllers [(ui.controllers.login/controller configuration session domain)]
      :view ui.views.pages.login/page
-     :controllers [(ui.controllers.login/controller configuration state)]
+     :roles []
      :layout :standalone}]
 
    ["error"
@@ -29,27 +59,9 @@
      :view ui.views.pages.error/view
      :label "Error"
      :icon solid-icons-24/ExclamationCircleIcon
-     :layout :standalone}]
+     :roles []
+     :layout :standalone}]])
 
-   [""
-    {:name ::home
-     :view ui.views.pages.home/view
-     :label "Home"
-     :icon solid-icons-24/HomeIcon
-     :layout :standard}]
 
-   ["about"
-    {:name ::about
-     :view ui.views.pages.about/view
-     :label "About"
-     :icon solid-icons-24/IdentificationIcon
-     :layout :standard}]
-
-   ["contact"
-    {:name ::contact
-     :view ui.views.pages.contact/view
-     :label "Contact"
-     :icon solid-icons-24/AtSymbolIcon
-     :layout :standard}]])
 
 

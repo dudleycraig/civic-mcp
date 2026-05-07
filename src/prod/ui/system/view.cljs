@@ -36,24 +36,21 @@
 (defmethod integrant.core/init-key ::service
   [_ props]
   (fn []
-    (let [{configuration :configuration router :router database :database} props
-          route-match @(:match router)
-          {{route-view :view route-layout :layout route-name :name} :data} route-match
-          route-controllers (:router.match/controllers route-match)
-          route-controller (some (fn [route-controller] (when (= ((:identity route-controller)) route-name) route-controller)) route-controllers)
-          route-state (:state route-controller)
+    (let [{configuration :configuration router :router} props
           {{data-theme :data-theme} :ui} configuration
-          props (assoc props :state route-state)]
-
-      [ui.views.components.shell/view {:data-theme data-theme}
-       (if (and (= route-name :ui.routes.pages/login) (not route-state))
-         [transitional-view]
+          route-state @(:route/state router)
+          {{route-view   :view 
+            route-layout :layout} :data
+           state-registry :route/state-registry} route-state]
+      
+      (if route-state
+        [ui.views.components.shell/view {:data-theme data-theme}
          (case route-layout
-           :standard    [standard-view   props [route-view props]]
-           :standalone  [standalone-view props [route-view props]]
-           [transitional-view]))])))
+           :standard    [standard-view   props [route-view (assoc props :state state-registry)]]
+           :standalone  [standalone-view props [route-view (assoc props :state state-registry)]]
+           [transitional-view])]
+        [transitional-view]))))
 
 (defmethod integrant.core/halt-key! ::service
   [_ _]
   nil)
-

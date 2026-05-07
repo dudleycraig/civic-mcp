@@ -18,15 +18,13 @@
 
 (defn default-unauthorized-handler
   [secure request _metadata]
-  (let [now (java.time.Instant/now)
-        body {:messaging/messages {}}]
-    (if (buddy.auth/authenticated? request)
-      (-> (ring.util.response/response (assoc-in body [:messaging/messages ::default-unauthorized-handler] {:message/status :error :message/text "Permission Denied" :message/timestamp (.toString now)}))
-          (ring.util.response/status 403)
-          (ring.util.response/set-cookie "token" "" {:http-only true :path "/" :max-age -1 :secure secure}))
-      (-> (ring.util.response/response (assoc-in body [:messaging/messages ::default-unauthorized-handler] {:message/status :error :message/text "Unauthorized" :message/timestamp (.toString now)}))
-          (ring.util.response/status 401)
-          (ring.util.response/set-cookie "token" "" {:http-only true :path "/" :max-age -1 :secure secure})))))
+  (if (buddy.auth/authenticated? request)
+    (-> (ring.util.response/response nil)
+        (ring.util.response/status 403)
+        (ring.util.response/set-cookie "session-token" "" {:http-only true :path "/" :max-age -1 :secure secure}))
+    (-> (ring.util.response/response nil)
+        (ring.util.response/status 401)
+        (ring.util.response/set-cookie "session-token" "" {:http-only true :path "/" :max-age -1 :secure secure}))))
 
 (defn authenticate-jwt
   [{{{{configured-issuer :iss configured-audience :aud} :claim} :authentication} :api} _database token-claim]
@@ -34,10 +32,12 @@
     (let [{token-issuer   :iss
            token-audience :aud
            user-uuid      :sub
+           user-jti       :jti
            user-data      :data} token-claim]
       (if (and (= token-issuer configured-issuer)
-               (= token-audience configured-audience))
-        (assoc user-data :user/uuid user-uuid)
+               (= token-audience configured-audience)
+               (not (clojure.string/blank? (str user-jti))))
+        (assoc user-data :user/uuid user-uuid :auth/jti user-jti)
         (throw
          (ex-info
           "Authentication Error, Invalid JWT Token Issuer or Audience"
@@ -58,8 +58,10 @@
         unauthorized-handler  (partial default-unauthorized-handler secure)
         public-key            (buddy.core.keys/public-key public-key)
         options               {:alg algorithm}
-        cookie-name           "token"
-        on-error              (fn [_request _token _exception] nil)]
+        cookie-name           "session-token"
+        on-error              (fn [_request _token exception]
+                                (clojure.tools.logging/warn "JWT Verification Failed:" (ex-message exception))
+                                nil)]
     (reify
       buddy.auth.protocols/IAuthentication
       (-parse [_ request]

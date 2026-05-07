@@ -10,10 +10,8 @@
 
 (defn unauthenticated-handler
   []
-  (let [now (java.time.Instant/now)
-        body {:messaging/messages {::unauthenticated-handler {:message/status :error :message/text "Unauthenticated" :message/timestamp (.toString now)}}}]
-    (-> (ring.util.response/response body)
-        (ring.util.response/status 401))))
+  (-> (ring.util.response/response nil)
+      (ring.util.response/status 401)))
 
 (defn unauthorized?
   [request role-name]
@@ -26,10 +24,8 @@
 
 (defn unauthorized-handler
   []
-  (let [now (java.time.Instant/now)
-        body {:messaging/messages {::unauthorized-handler {:message/status :error :message/text "Unauthorized" :message/timestamp (.toString now)}}}]
-    (-> (ring.util.response/response body)
-        (ring.util.response/status 403))))
+  (-> (ring.util.response/response nil)
+      (ring.util.response/status 403)))
 
 (defn wrap-administrator
   [handler]

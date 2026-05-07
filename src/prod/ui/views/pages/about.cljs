@@ -1,7 +1,7 @@
 (ns ui.views.pages.about)
 
 (defn view
-  []
+  [props]
   [:section.space-y-6
    [:header
     [:h1.text-4xl.font-black.tracking-tight "About"]

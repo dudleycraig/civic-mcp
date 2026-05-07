@@ -2,6 +2,25 @@
   (:require
     [clojure.string]))
 
+(defn keywordize
+  [data]
+  (cond
+    (map? data)
+    (reduce-kv
+     (fn [acc k v]
+       (let [new-k (if (string? k)
+                     (let [[ns name] (clojure.string/split k #"/" 2)]
+                       (if name
+                         (keyword ns name)
+                         (keyword ns)))
+                     k)]
+         (assoc acc new-k (keywordize v))))
+     {}
+     data)
+    (vector? data) (mapv keywordize data)
+    :else data))
+
+;; TODO: move to some sort of http utilities or ...?
 (defn get-cookie
   [cookie-name]
   (let [cookies (. js/document -cookie)
@@ -30,5 +49,16 @@
     (js/fetch (str (:base-url http) "/authentication/login")
               (clj->js {:method "POST"
                         :headers {"Authorization" basic-header "X-CSRF-Token" csrf-token}
-                        :credentials "include"}))))
+                        :credentials (if (:cors http) "include" "same-origin")}))))
+
+(defn get-session
+  [{{http :http} :ui}]
+  (js/fetch (str (:base-url http) "/authentication/session/verify")
+            (clj->js {:method "GET"
+                      :credentials (if (:cors http) "include" "same-origin")})))
+
+
+
+
+
 

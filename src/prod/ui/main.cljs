@@ -4,6 +4,7 @@
    [reagent.core]
    [reagent.dom.client]
    [goog.dom]
+   [reitit.frontend.easy]
    [ui.system.services]
    [ui.system.view]))
 
