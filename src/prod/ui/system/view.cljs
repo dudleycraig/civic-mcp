@@ -12,15 +12,14 @@
   []
   [:div "CIVIC ZA loading ..."])
 
-(defn standalone-view
+(defn public-view
   [_props & children]
   (into [:<>] children))
 
-(defn standard-view
-  [{router :router} & children]
+(defn private-view
+  [{routes :routes match-name :match-name} & children]
   [:<>
-   [ui.views.components.main-header/view
-    [ui.views.components.main-navigation/view {:router router}]]
+   [ui.views.components.main-header/view {:routes routes :match-name match-name}]
    [:main.flex-1.relative
     {:role "main"}
     [:section.absolute.inset-0.overflow-y-auto.bg-base-300
@@ -34,20 +33,19 @@
     [:div "© 2026 Civic Za"]]])
 
 (defmethod integrant.core/init-key ::service
-  [_ props]
+  [_ {configuration :configuration router :router session :session}]
   (fn []
-    (let [{configuration :configuration router :router} props
-          {{data-theme :data-theme} :ui} configuration
-          route-state @(:route/state router)
-          {{route-view   :view 
-            route-layout :layout} :data
-           state-registry :route/state-registry} route-state]
-      
-      (if route-state
+    (let [{{data-theme :data-theme} :ui} configuration
+          {routes :router/routes match-state :match/state} router
+          {session-state :state} session
+          {{match-view :view match-layout :layout match-name :name} :data :as match} @match-state
+          session @session-state]
+
+      (if match
         [ui.views.components.shell/view {:data-theme data-theme}
-         (case route-layout
-           :standard    [standard-view   props [route-view (assoc props :state state-registry)]]
-           :standalone  [standalone-view props [route-view (assoc props :state state-registry)]]
+         (case match-layout
+           :private [private-view {:match-name match-name :routes routes} [match-view {:match match}]]
+           :public  [public-view  {}                                      [match-view {:match match}]]
            [transitional-view])]
         [transitional-view]))))
 

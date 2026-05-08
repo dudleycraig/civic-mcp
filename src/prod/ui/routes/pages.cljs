@@ -27,7 +27,7 @@
      :label "Home"
      :icon solid-icons-24/HomeIcon
      :roles ["administrator"]
-     :layout :standard}]
+     :layout :private}]
 
    ["about"
     {:name ::about
@@ -35,8 +35,8 @@
      :view ui.views.pages.about/view
      :label "About"
      :icon solid-icons-24/IdentificationIcon
-     :roles []
-     :layout :standard}]
+     :roles ["administrator"]
+     :layout :private}]
 
    ["contact"
     {:name ::contact
@@ -44,15 +44,15 @@
      :view ui.views.pages.contact/view
      :label "Contact"
      :icon solid-icons-24/AtSymbolIcon
-     :roles []
-     :layout :standard}]
+     :roles ["administrator"]
+     :layout :private}]
 
    ["login"
     {:name ::login
      :controllers [(ui.controllers.login/controller configuration session domain)]
      :view ui.views.pages.login/page
      :roles []
-     :layout :standalone}]
+     :layout :public}]
 
    ["error"
     {:name ::error
@@ -60,7 +60,7 @@
      :label "Error"
      :icon solid-icons-24/ExclamationCircleIcon
      :roles []
-     :layout :standalone}]])
+     :layout :public}]])
 
 
 

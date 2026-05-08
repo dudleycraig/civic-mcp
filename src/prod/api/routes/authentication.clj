@@ -72,7 +72,7 @@
       :middleware  [[buddy.auth.middleware/wrap-authentication authentication]]
       :get         {:summary   "verifies an existing session"
                     :handler   (fn [{configuration :configuration :as request}]
-                                 (if-let [identity (buddy.auth/authenticated? request)]
+                                 (if-let [identity (:identity request)]
                                    (ring.util.response/response identity)
                                    (login-error-handler configuration)))}}]]
 

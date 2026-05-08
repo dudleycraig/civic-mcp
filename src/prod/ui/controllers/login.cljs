@@ -45,10 +45,8 @@
                         (throw (js/Error. "Login Failed")))))
             (.then  (fn [json]
                       (swap! state assoc :status :dirty)
-                      (let [payload (-> json js->clj ui.api/keywordize)
-                            ;; FIX: Use namespaced key for the session save function
-                            save-fn (get session :session/save)]
-                        (save-fn payload))
+                      (let [payload (-> json js->clj ui.api/keywordize)]
+                        ((:save session) payload))
                       (reitit.frontend.easy/push-state :ui.routes.pages/home)))
             (.catch (fn [error]
                       (swap! state assoc :status :error)
@@ -69,12 +67,17 @@
 (defn controller
   [configuration session _domain]
   (let [state (reagent.core/atom {:status :inert})]
-    {:name      :ui.controllers.login/login
+    {:name      ::controller
      :state     state
-     :identity  (fn [route-state] route-state)
-     :start     (fn [route-state]
-                  (swap! state assoc
-                         :on-change (partial on-change-handler state)
-                         :on-submit (partial on-submit-handler configuration session state))
+     :identity  (fn [match] match)
+     :start     (fn [match]
+                  (swap!
+                   state assoc
+                   :on-change (partial on-change-handler state)
+                   :on-submit (partial on-submit-handler configuration session state))
                   (process-csrf configuration))
-     :stop      (fn [route-state] nil)}))
+     :stop      (fn [match] nil)}))
+
+
+
+

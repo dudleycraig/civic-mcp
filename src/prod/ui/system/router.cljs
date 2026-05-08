@@ -12,25 +12,24 @@
    [ui.routes.pages]))
 
 (defn route-handler
-  [state proposed-state]
-  (let [current-state @state
-        current-controllers (get current-state :route/controllers [])
-        applied-controllers (reitit.frontend.controllers/apply-controllers current-controllers proposed-state)
-        state-registry (reduce ;; build registry of controllers' state
-                         (fn [accumulator controller]
-                           (if (:name controller)
-                             (assoc accumulator (:name controller) (:state controller))
-                             accumulator))
-                         {}
-                         applied-controllers)]
+  [state proposed-match]
+  (let [current-match @state
+        current-controllers (get current-match :route/controllers [])
+        applied-controllers (reitit.frontend.controllers/apply-controllers current-controllers proposed-match)
+        controller-registry (reduce
+                        (fn [accumulator controller]
+                          (if (:name controller)
+                            (assoc accumulator (:name controller) (select-keys controller [:state]))
+                            accumulator))
+                        {}
+                        applied-controllers)]
 
-    (if (= current-state @state)
-      (reset! state (assoc proposed-state
-                           :route/controllers applied-controllers
-                           :route/state-registry state-registry))
-      (.warn js/console "Navigation Superseded:"
-             (get-in current-state [:data :name]) " -> "
-             (get-in proposed-state [:data :name])))))
+    (if (= current-match @state)
+      (reset! state (->
+                     proposed-match
+                     (assoc :route/controllers applied-controllers)
+                     (assoc-in [:data :controllers] controller-registry)))
+      (.warn js/console "Route " (get-in current-match [:data :name]) " superseded by Route " (get-in proposed-match [:data :name])))))
 
 (defmethod integrant.core/init-key ::service
   [_ {configuration :configuration session :session domain :domain}]
@@ -47,8 +46,12 @@
      (partial route-handler state)
      {:use-fragment false})
 
-    {:router/routes routes :route/state state}))
+    {:router/routes routes :match/state state}))
 
 (defmethod integrant.core/halt-key! ::service
   [_ _]
   nil)
+
+
+
+

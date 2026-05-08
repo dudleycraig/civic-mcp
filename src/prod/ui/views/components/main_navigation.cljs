@@ -7,26 +7,35 @@
    [reitit.frontend.easy]
    [ui.routes.pages]))
 
-(defn nav-route
-  [match-name {route-name :name route-label :label route-icon :icon}]
+(def device->class
+  {:mobile "menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+   :desktop "menu-horizontal px-1"})
+
+(defn nav-link
+  [{{route-name :name route-label :label route-icon :icon} :route active? :active?}]
   [:li
    [:a.whitespace-nowrap
     {:href (reitit.frontend.easy/href route-name {})
-     :class (when (= match-name route-name) "active")}
+     :class (when active? "active")}
     (when route-icon [:> route-icon {:class "w-5 h-5"}])
     route-label]])
 
-(defn render-nav-item
+(defn nav-item
   [match-name {route-name :name route-label :label :as route}]
   (when (and route-label (not= route-name :ui.routes.pages/error))
     ^{:key (str route-name)}
-    [nav-route match-name route]))
+    [nav-link {:route route :active? (= match-name route-name)}]))
 
 (defn view
-  [{{[_root-path & routes] :router/routes route-state :route/state} :router :as props}]
-  (let [{{route-name :name} :data} @route-state]
-    [:nav
-     [:ul.menu
-      (dissoc props :router)
-      (for [[_route-path route] routes]
-        (render-nav-item route-name route))]]))
+  [{routes :routes match-name :match-name device :device :as props}]
+  [:nav
+   [:ul.menu
+    (-> props
+        (select-keys [:id :class :style])
+        (update :class str " " (get device->class device)))
+    (for [[_route-path route] routes]
+      (nav-item match-name route))]])
+
+
+
+

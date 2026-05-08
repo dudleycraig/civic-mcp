@@ -18,6 +18,7 @@
                                      :session         (iref :ui.system.session/service)
                                      :domain          (iref :ui.system.domain/service)}
    :ui.system.view/service          {:configuration   (iref :ui.system.configuration/service)
+                                     :session         (iref :ui.system.session/service)
                                      :router          (iref :ui.system.router/service)}})
 
 (defn init
