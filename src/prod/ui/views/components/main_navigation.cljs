@@ -16,7 +16,7 @@
   [:li
    [:a.whitespace-nowrap
     {:href (reitit.frontend.easy/href route-name {})
-     :class (when active? "active")}
+     :class (when active? "menu-active")}
     (when route-icon [:> route-icon {:class "w-5 h-5"}])
     route-label]])
 

@@ -12,8 +12,8 @@
   [profile]
   {:ui.system.configuration/service {:profile profile}
    :ui.system.cache/service         {:configuration   (iref :ui.system.configuration/service)}
-   :ui.system.session/service       {:configuration   (iref :ui.system.configuration/service)}
    :ui.system.domain/service        {:configuration   (iref :ui.system.configuration/service)}
+   :ui.system.session/service       {:configuration   (iref :ui.system.configuration/service)}
    :ui.system.router/service        {:configuration   (iref :ui.system.configuration/service)
                                      :session         (iref :ui.system.session/service)
                                      :domain          (iref :ui.system.domain/service)}

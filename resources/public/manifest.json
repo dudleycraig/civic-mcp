@@ -1,0 +1,24 @@
+{
+  "name": "CIVIC ZA",
+  "short_name": "CIVIC ZA",
+  "description": "Interactive 3D dashboard for South African demographic and voting data",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1d232a",
+  "theme_color": "#1d232a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/images/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

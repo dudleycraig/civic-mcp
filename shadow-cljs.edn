@@ -22,6 +22,8 @@
                                  ui.system.configuration/http-protocol   #shadow/env "HTTP_PROTOCOL"
                                  ui.system.configuration/http-host       #shadow/env "HTTP_HOST"
                                  ui.system.configuration/http-port       #shadow/env ["HTTP_PORT" {:as :int}]
+
+                                 ui.main/pwa?                            #shadow/env ["PWA" {:as :bool}]
                                  ui.main/profile                         #shadow/env "PROFILE"}}}}
 
 
