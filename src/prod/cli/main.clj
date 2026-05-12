@@ -1,6 +1,6 @@
-(ns admin.main
+(ns cli.main
   (:require
-   [admin.tasks]))
+   [cli.tasks]))
 
 (defn help
   []
@@ -10,6 +10,6 @@
 
 (defn init [{action :action}]
   (case action
-    :init-db (admin.tasks/init-db)
-    :reset-db (admin.tasks/reset-db)
+    :init-db (cli.tasks/init-db)
+    :reset-db (cli.tasks/reset-db)
     (help)))

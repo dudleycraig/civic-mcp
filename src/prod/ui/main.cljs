@@ -19,8 +19,7 @@
   (if (and pwa? (exists? js/navigator.serviceWorker))
     (->
      js/navigator.serviceWorker
-     (.register "/service-worker.js")
-     (.then #(. js/console log "PWA Enabled")))
+     (.register "/service-worker.js"))
     (when (exists? js/navigator.serviceWorker)
       (->
        js/navigator.serviceWorker

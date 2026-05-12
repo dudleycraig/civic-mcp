@@ -12,6 +12,26 @@
    [common.entities.utilities]
    [api.system.authentication]))
 
+(defn csrf-middleware
+  []
+  {:name ::csrf
+   :wrap (fn [handler]
+           (fn [request]
+             (let [token-cookie (get-in request [:cookies "csrf-token" :value])
+                   token-header (get-in request [:headers "x-csrf-token"])
+                   http-method  (:request-method request)]
+               (if (contains? #{:post :put :delete :patch} http-method)
+                 (if (and token-cookie token-header (= token-cookie token-header))
+                   (handler request)
+                   (->
+                    (ring.util.response/response nil)
+                    (ring.util.response/status 403)))
+                 (let [response (handler request)]
+                   (if (clojure.string/blank? token-cookie)
+                     (let [new-token (clojure.string/replace (.toString (java.util.UUID/randomUUID)) #"-" "")]
+                       (ring.util.response/set-cookie response "csrf-token" new-token {:http-only false :path "/" :same-site :lax}))
+                     response))))))})
+
 (defn decode-basic-authentication
   [request]
   (when-let [authentication-header (get-in request [:headers "authorization"])]
@@ -56,7 +76,8 @@
   ["/authentication"
    ["/login"
     {:name        ::login
-     :middleware  [[buddy.auth.middleware/wrap-authentication authentication]]
+     :middleware  [[buddy.auth.middleware/wrap-authentication authentication]
+                   (csrf-middleware)]
      :post        {:summary   "instantiates a session"
                    :handler   (fn [{{{query-worker :query} :workers} :database configuration :configuration :as request}]
                                 (let [{email :user/email password :user/password} (decode-basic-authentication request)]

@@ -6,7 +6,7 @@
   []
   ["/csrf"
    {:name        ::csrf
-    :get         {:summary "retrieve CSRF for login"
+    :get         {:summary "retrieve CSRF"
                   :handler (fn [_]
                              (-> (ring.util.response/response nil)
                                  (ring.util.response/status 200)

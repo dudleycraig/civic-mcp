@@ -17,7 +17,8 @@
    (reitit.ring/ring-handler
     (reitit.ring/router
      (api.routes/get-routes configuration database authentication)
-     {:data {:muuntaja muuntaja.core/instance}}))
+     {:data {:muuntaja muuntaja.core/instance}
+      :conflicts nil}))
    ring.middleware.cookies/wrap-cookies))
 
 (defmethod integrant.core/halt-key! ::service

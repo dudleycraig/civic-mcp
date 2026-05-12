@@ -1,6 +1,9 @@
 (ns ui.api
   (:require
-    [clojure.string]))
+   [clojure.string]))
+
+;; TODO: move namespace to ui.routes...
+;; TODO: turn this into a service that injects a configuration.
 
 (defn keywordize
   [data]
@@ -37,7 +40,7 @@
             (clj->js {:method "GET"
                       :credentials (if (:cors http) "include" "same-origin")})))
 
-(defn post-credentials
+(defn login
   [{{http :http} :ui} credentials]
   (let [csrf-token (get-cookie "csrf-token")
         basic-header (->>
@@ -50,6 +53,12 @@
               (clj->js {:method "POST"
                         :headers {"Authorization" basic-header "X-CSRF-Token" csrf-token}
                         :credentials (if (:cors http) "include" "same-origin")}))))
+
+(defn logout
+  [{{http :http} :ui}]
+  (js/fetch (str (:base-url http) "/authentication/logout")
+            (clj->js {:method "POST"
+                      :credentials (if (:cors http) "include" "same-origin")})))
 
 (defn get-session
   [{{http :http} :ui}]

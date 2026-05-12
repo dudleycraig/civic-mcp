@@ -17,9 +17,9 @@
   (into [:<>] children))
 
 (defn private-view
-  [{routes :routes match-name :match-name} & children]
+  [{configuration :configuration match-name :match-name routes :routes session :session} & children]
   [:<>
-   [ui.views.components.main-header/view {:routes routes :match-name match-name}]
+   [ui.views.components.main-header/view {:configuration configuration :match-name match-name :routes routes :session session}]
    [:main.flex-1.relative
     {:role "main"}
     [:section.absolute.inset-0.overflow-y-auto.bg-base-300
@@ -38,14 +38,13 @@
     (let [{{data-theme :data-theme} :ui} configuration
           {routes :router/routes match-state :match/state} router
           {session-state :state} session
-          {{match-view :view match-layout :layout match-name :name} :data :as match} @match-state
-          session @session-state]
+          {{match-view :view match-layout :layout match-name :name} :data :as match} @match-state]
 
       (if match
         [ui.views.components.shell/view {:data-theme data-theme}
          (case match-layout
-           :private [private-view {:match-name match-name :routes routes} [match-view {:match match}]]
-           :public  [public-view  {}                                      [match-view {:match match}]]
+           :private [private-view {:configuration configuration :match-name match-name :routes routes :session session} [match-view {:match match}]]
+           :public  [public-view  {}                                                                                    [match-view {:match match}]]
            [transitional-view])]
         [transitional-view]))))
 

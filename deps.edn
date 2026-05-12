@@ -14,9 +14,9 @@
   metosin/reitit {:mvn/version "0.9.2"}}
 
  :aliases
- {;; --- ADMIN ---
-  :prod-admin
-  {:ns-default admin.main
+ {;; --- CLI ---
+  :prod-cli
+  {:ns-default cli.main
    :extra-paths ["src/prod"]
    :extra-deps {org.clojure/tools.logging {:mvn/version "1.2.4"}
                 ch.qos.logback/logback-classic {:mvn/version "1.5.6"}
@@ -32,17 +32,17 @@
                 org.locationtech.jts/jts-core {:mvn/version "1.20.0"}}
    :exec-fn init
    :jvm-ops ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
-             "-Dlogback.configurationFile=resources/logback-admin.xml"]}
+             "-Dlogback.configurationFile=resources/logback-cli.xml"]}
 
-  :dev-admin
-  {:extra-paths ["src/dev/admin"]
+  :dev-cli
+  {:extra-paths ["src/dev/cli"]
    :extra-deps {}}
 
-  :test-admin
+  :test-cli
   {:extra-paths ["src/test"]
    :extra-deps {}}
 
-;; --- MCP ---
+  ;; --- MCP ---
   :prod-mcp
   {:ns-default mcp.main
    :extra-paths ["src/prod"]
@@ -68,7 +68,7 @@
   {:extra-paths ["src/test"]
    :extra-deps {}}
 
-;; --- API ---
+  ;; --- API ---
   :prod-api
   {:ns-default api.main
    :extra-paths ["src/prod"]
@@ -110,7 +110,7 @@
                 ring/ring-mock      {:mvn/version "0.4.0"}}
    :main-opts ["-m" "kaocha.runner"]}
 
-;; --- UI ---
+  ;; --- UI ---
   :prod-ui
   {:extra-paths ["src/prod"]
    :extra-deps {reagent/reagent {:mvn/version "2.0.0"}
@@ -127,7 +127,7 @@
   {:extra-paths ["src/test"]
    :extra-deps {day8.re-frame/test {:mvn/version "0.1.7"}}}
 
-;; --- uberjar ---
+  ;; --- uberjar ---
   :uberjar
   {:deps {org.clojure/tools.build {:mvn/version "0.10.7"}}
    :jvm-ops ["-Dclojure.compiler.direct-linking=true"]

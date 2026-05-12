@@ -2,6 +2,7 @@
   (:require
    [integrant.core]))
 
+;; TODO: implement goog-define via macros
 (goog-define http-cors "")
 (goog-define http-protocol "")
 (goog-define http-host "")
@@ -17,6 +18,7 @@
 
 (defmethod integrant.core/init-key ::service
   [_ {profile :profile}]
+
   {:ui
    {:data-theme   (get themes 3 "wireframe")
     :http         {:cors      http-cors

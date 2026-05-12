@@ -1,4 +1,4 @@
-(ns admin.system.configuration
+(ns cli.system.configuration
   (:require
    [aero.core]
    [clojure.java.io]))

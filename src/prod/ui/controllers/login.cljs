@@ -38,7 +38,7 @@
     (if (. form checkValidity)
       (let [credentials (->> (form->map form) (coerce :user/credentials))]
         (swap! state assoc :status :active)
-        (-> (ui.api/post-credentials configuration credentials)
+        (-> (ui.api/login configuration credentials)
             (.then  (fn [response]
                       (if (. response -ok)
                         (. response json)
@@ -58,8 +58,7 @@
   [configuration]
   (-> (ui.api/get-csrf configuration)
       (.then (fn [response]
-               (if (. response -ok)
-                 (. js/console log "CSRF Initialized")
+               (when-not (. response -ok)
                  (. js/console error "CSRF Unavailable"))))
       (.catch (fn [error]
                 (. js/console error "CSRF Error:" error)))))

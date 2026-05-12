@@ -1,24 +1,24 @@
-(ns admin.tasks
+(ns cli.tasks
   (:require
    [clojure.data.json]
    [datomic.client.api]
    [common.schemas.role]
    [common.schemas.user]
    [common.schemas.ward]
-   [admin.system.configuration]))
+   [cli.system.configuration]))
 
 (defn get-client
   []
   (->
     ;; TODO: system.configuration/extract adds a tightly coupled dependency, rather pass as parameters 
-   (admin.system.configuration/extract :datomic :client)
+   (cli.system.configuration/extract :datomic :client)
    (datomic.client.api/client)))
 
 (defn create-database
   [datomic-client]
   (->
     ;; TODO: system.configuration/extract adds a tightly coupled dependency, rather pass as parameters 
-   (admin.system.configuration/extract :datomic :db-name)
+   (cli.system.configuration/extract :datomic :db-name)
    (hash-map :db-name)
    (datomic.client.api/create-database)))
 
@@ -26,7 +26,7 @@
   [datomic-client]
   (->>
     ;; TODO: system.configuration/extract adds a tightly coupled dependency, rather pass as parameters 
-   (admin.system.configuration/extract :datomic :db-name)
+   (cli.system.configuration/extract :datomic :db-name)
    (hash-map :db-name)
    (datomic.client.api/connect datomic-client)))
 
@@ -71,7 +71,7 @@
   (let [datomic-client (get-client)]
     (->>
     ;; TODO: system.configuration/extract adds a tightly coupled dependency, rather pass as parameters 
-     (admin.system.configuration/extract :datomic :db-name)
+     (cli.system.configuration/extract :datomic :db-name)
      (hash-map :db-name)
      (datomic.client.api/delete-database datomic-client))
     (init-db)))

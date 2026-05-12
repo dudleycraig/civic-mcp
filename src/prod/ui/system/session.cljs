@@ -27,7 +27,6 @@
   [configuration state]
   (-> (ui.api/get-session configuration)
       (.then  (fn [response]
-                (. js/console log "response" response)
                 (if (. response -ok)
                   (. response json)
                   (let [status (. response -status)]
