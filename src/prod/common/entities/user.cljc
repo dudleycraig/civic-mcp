@@ -11,14 +11,14 @@
   {:user/email      "administrator@test.com"
    :user/first-name "Test"
    :user/last-name  "Administrators"
-   :user/password   "password"
+   :user/password   "undefined"
    :user/roles      [[:role/name :administrator]]})
 
 (def transient-guest
   {:user/email      "guest@test.com"
    :user/first-name "Test"
    :user/last-name  "Guests"
-   :user/password   "password"
+   :user/password   "undefined"
    :user/roles      [[:role/name :guest]]})
 
 (defn transient->private

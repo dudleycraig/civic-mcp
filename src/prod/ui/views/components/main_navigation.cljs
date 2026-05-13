@@ -9,10 +9,7 @@
    [ui.utilities]
    [ui.routes.pages]))
 
-;; TODO: move into a "constants" file
 (def company-text "CIVIC ZA")
-
-;; TODO: move to NOT HERE!!
 
 (defn svg []
   [:svg

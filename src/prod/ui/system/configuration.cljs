@@ -20,7 +20,7 @@
   [_ {profile :profile}]
 
   {:ui
-   {:data-theme   (get themes 3 "wireframe")
+   {:data-theme   (get themes 9 "wireframe")
     :http         {:cors      http-cors
                    :protocol  http-protocol
                    :host      http-host

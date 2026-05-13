@@ -1,15 +1,14 @@
 (ns ui.views.components.main-header
   (:require
    [reagent.core]
-   ["@heroicons/react/24/solid" :as solid-icons-24]
-   [ui.views.components.main-navigation]))
+   ["@heroicons/react/24/solid" :as solid-icons-24]))
 
 (defn view
   [{user-email :user-email on-logout :on-logout} & children]
   [:header.flex-none.bg-base-200.shadow-md
    {:role "banner"}
    [:nav.navbar.px-4
-    {:aria-label "Primary Navigation"}
+    {:aria-label "Private Navigation"}
     [:<> children]
     [:div.navbar-end
      (if user-email
