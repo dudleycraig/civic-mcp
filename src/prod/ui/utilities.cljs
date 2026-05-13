@@ -1,5 +1,6 @@
 (ns ui.utilities
   (:require
+   [clojure.walk]
    [clojure.string]))
 
 (defn get-cookie
@@ -29,4 +30,14 @@
      data)
     (vector? data) (mapv keywordize data)
     :else data))
+
+(defn get-routes-by-key-value
+  [routes key value]
+  (let [state (atom nil)]
+    (clojure.walk/prewalk
+     (fn [node] (when (and (vector? node) (map? (second node)) (= (key (second node)) value)) (reset! state (drop 2 node))) node)
+     routes)
+    @state))
+
+
 

@@ -12,6 +12,23 @@
   []
   [:div "CIVIC ZA loading ..."])
 
+#_(defn main-menu
+    [{routes :routes match-name :match-name}]
+    [:<>
+     [:div.navbar-start
+      [:div.dropdown
+       [:div.btn.btn-ghost.lg:hidden
+        {:tab-index "0" :role "button" :aria-label "Toggle Navigation Menu"}
+        [svg]]
+       [ui.views.components.main-navigation/view
+        {:routes routes :match-name match-name :device :mobile}]]
+      [:div.btn.btn-ghost.text-xl.font-black company-text]]
+
+     [:div.navbar-center.hidden.lg:flex
+      {:class "lg:flex"}
+      [ui.views.components.main-navigation/view
+       {:routes routes :match-name match-name :device :desktop}]]])
+
 (defn public-view
   [_props & children]
   (into [:<>] children))
@@ -22,7 +39,10 @@
         {on-logout :on-logout} (-> match :data :controllers :ui.controllers.logout/controller :state deref)
         {user-email :user/email} (-> session :state deref)]
     [:<>
-     [ui.views.components.main-header/view {:user-email user-email :on-logout on-logout :match-name match-name :routes routes}]
+     [ui.views.components.main-header/view
+      {:user-email user-email :on-logout on-logout :match-name match-name :routes routes}
+      [ui.views.components.main-navigation/view
+       {:key "main-menu" :routes routes :match-name match-name}]]
      [:main.flex-1.relative
       {:role "main"}
       [:section.absolute.inset-0.overflow-y-auto.bg-base-300
