@@ -17,12 +17,12 @@
         current-controllers (get current-match :route/controllers [])
         applied-controllers (reitit.frontend.controllers/apply-controllers current-controllers proposed-match)
         controller-registry (reduce
-                        (fn [accumulator controller]
-                          (if (:name controller)
-                            (assoc accumulator (:name controller) (select-keys controller [:state]))
-                            accumulator))
-                        {}
-                        applied-controllers)]
+                             (fn [accumulator controller]
+                               (if (:name controller)
+                                 (assoc accumulator (:name controller) (select-keys controller [:state]))
+                                 accumulator))
+                             {}
+                             applied-controllers)]
 
     (if (= current-match @state)
       (reset! state (->
@@ -32,12 +32,12 @@
       (.warn js/console "Route " (get-in current-match [:data :name]) " superseded by Route " (get-in proposed-match [:data :name])))))
 
 (defmethod integrant.core/init-key ::service
-  [_ {configuration :configuration session :session domain :domain}]
+  [_ {api :api session :session domain :domain}]
   (let [state  (reagent.core/atom nil)
-        routes (ui.routes.pages/get-routes configuration session domain)
+        routes (ui.routes.pages/get-routes api session domain)
         router (->>
-                {:data {:coercion reitit.coercion.spec/coercion
-                        :configuration configuration}
+                {:data
+                 {:coercion reitit.coercion.spec/coercion}
                  :conflicts nil}
                 (reitit.frontend/router routes))]
 

@@ -6,7 +6,7 @@
    [reitit.frontend.easy]
    [clojure.spec.alpha]
    [common.specs.user]
-   [ui.api]))
+   [ui.utilities]))
 
 (defn form->map
   [form]
@@ -32,20 +32,20 @@
     (swap! state assoc :status (if (. form checkValidity) :dirty :error))))
 
 (defn on-submit-handler
-  [configuration session state event]
+  [api session state event]
   (. event preventDefault)
   (let [form (. event -target)]
     (if (. form checkValidity)
       (let [credentials (->> (form->map form) (coerce :user/credentials))]
         (swap! state assoc :status :active)
-        (-> (ui.api/login configuration credentials)
+        (-> ((:post-login api) credentials)
             (.then  (fn [response]
                       (if (. response -ok)
                         (. response json)
                         (throw (js/Error. "Login Failed")))))
             (.then  (fn [json]
                       (swap! state assoc :status :dirty)
-                      (let [payload (-> json js->clj ui.api/keywordize)]
+                      (let [payload (-> json js->clj ui.utilities/keywordize)]
                         ((:save session) payload))
                       (reitit.frontend.easy/push-state :ui.routes.pages/home)))
             (.catch (fn [error]
@@ -55,8 +55,8 @@
     (.. event -target -classList (add "validated"))))
 
 (defn process-csrf
-  [configuration]
-  (-> (ui.api/get-csrf configuration)
+  [api]
+  (-> ((:get-csrf api))
       (.then (fn [response]
                (when-not (. response -ok)
                  (. js/console error "CSRF Unavailable"))))
@@ -64,18 +64,19 @@
                 (. js/console error "CSRF Error:" error)))))
 
 (defn controller
-  [configuration session _domain]
+  [api session _domain]
   (let [state (reagent.core/atom {:status :inert})]
     {:name      ::controller
      :state     state
      :identity  (fn [match] match)
-     :start     (fn [match]
+     :start     (fn [_match]
                   (swap!
                    state assoc
                    :on-change (partial on-change-handler state)
-                   :on-submit (partial on-submit-handler configuration session state))
-                  (process-csrf configuration))
-     :stop      (fn [match] nil)}))
+                   :on-submit (partial on-submit-handler api session state))
+                  (process-csrf api))
+     :stop      (fn [_match]
+                  nil)}))
 
 
 

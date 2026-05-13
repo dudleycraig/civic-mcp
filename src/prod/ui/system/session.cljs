@@ -1,11 +1,12 @@
 (ns ui.system.session
   (:require
+   [clojure.string]
    [cljs.pprint]
    [reagent.core]
    [integrant.core]
-   [ui.api]
    [reitit.frontend.easy]
-   [cljs.reader]))
+   [cljs.reader]
+   [ui.utilities]))
 
 (def storage-key "session")
 
@@ -24,8 +25,8 @@
         (reitit.frontend.easy/push-state :ui.routes.pages/login)))))
 
 (defn verify
-  [configuration state]
-  (-> (ui.api/get-session configuration)
+  [api state]
+  (-> ((:get-session-verify api))
       (.then  (fn [response]
                 (if (. response -ok)
                   (. response json)
@@ -34,7 +35,7 @@
                       (throw (ex-info "Session Expired" {:type :unauthorized}))
                       (throw (ex-info "Server Error" {:type :server :status status})))))))
       (.then  (fn [json]
-                (let [session (-> json js->clj ui.api/keywordize)]
+                (let [session (-> json js->clj ui.utilities/keywordize)]
                   (.setItem js/localStorage storage-key (pr-str session))
                   (reset! state session))))
       (.catch (fn [_]
@@ -42,15 +43,15 @@
                 (reset! state nil)))))
 
 (defmethod integrant.core/init-key ::service
-  [_ {configuration :configuration}]
+  [_ {api :api}]
   (let [state (reagent.core/atom (some->> (.getItem js/localStorage storage-key) cljs.reader/read-string))]
     (. js/window addEventListener "storage" (partial sync state))
-    (verify configuration state)
+    (verify api state)
     {:state   state
      :sync    (partial sync state)
      :read    (fn [] @state)
      :save    (fn [session] (.setItem js/localStorage storage-key (pr-str session)) (reset! state session))
-     :verify  (partial verify configuration state)
+     :verify  (partial verify api state)
      :clear   (fn [] (.removeItem js/localStorage storage-key) (reset! state nil))}))
 
 (defmethod integrant.core/halt-key! ::service

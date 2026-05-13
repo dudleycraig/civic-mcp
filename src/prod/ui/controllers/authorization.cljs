@@ -5,8 +5,7 @@
    [clojure.string]
    [reitit.frontend.easy]
    [clojure.spec.alpha]
-   [common.specs.user]
-   [ui.api]))
+   [common.specs.user]))
 
 (defn authorized?
   [session match]
@@ -17,7 +16,7 @@
       (some (set route-roles) (map :role/name user-roles)))))
 
 (defn controller
-  [configuration session _domain]
+  [session _domain]
   {:name      ::controller
    :state     nil
    :identity  (fn [match] match)

@@ -11,6 +11,7 @@
 
    [ui.controllers.authorization]
    [ui.controllers.login]
+   [ui.controllers.logout]
 
    [ui.views.pages.login]
    [ui.views.pages.error]
@@ -18,38 +19,42 @@
    [ui.views.pages.about]
    [ui.views.pages.contact]))
 
-(defn get-routes [configuration session domain]
+(defn get-routes [api session domain]
   ["/"
+
+   ;; private routes
    [""
-    {:name ::home
-     :controllers [(ui.controllers.authorization/controller configuration session domain)]
-     :view ui.views.pages.home/view
-     :label "Home"
-     :icon solid-icons-24/HomeIcon
-     :roles ["administrator"]
-     :layout :private}]
+    {:controllers [(ui.controllers.logout/controller api session)]
+     :layout :private}
 
-   ["about"
-    {:name ::about
-     :controllers [(ui.controllers.authorization/controller configuration session domain)]
-     :view ui.views.pages.about/view
-     :label "About"
-     :icon solid-icons-24/IdentificationIcon
-     :roles ["administrator"]
-     :layout :private}]
+    [""
+     {:name ::home
+      :controllers [(ui.controllers.authorization/controller session domain)]
+      :view ui.views.pages.home/view
+      :label "Home"
+      :icon solid-icons-24/HomeIcon
+      :roles ["administrator"]}]
 
-   ["contact"
-    {:name ::contact
-     :controllers [(ui.controllers.authorization/controller configuration session domain)]
-     :view ui.views.pages.contact/view
-     :label "Contact"
-     :icon solid-icons-24/AtSymbolIcon
-     :roles ["administrator"]
-     :layout :private}]
+    ["about"
+     {:name ::about
+      :controllers [(ui.controllers.authorization/controller session domain)]
+      :view ui.views.pages.about/view
+      :label "About"
+      :icon solid-icons-24/IdentificationIcon
+      :roles ["administrator"]}]
 
+    ["contact"
+     {:name ::contact
+      :controllers [(ui.controllers.authorization/controller session domain)]
+      :view ui.views.pages.contact/view
+      :label "Contact"
+      :icon solid-icons-24/AtSymbolIcon
+      :roles ["administrator"]}]]
+
+   ;; public routes
    ["login"
     {:name ::login
-     :controllers [(ui.controllers.login/controller configuration session domain)]
+     :controllers [(ui.controllers.login/controller api session domain)]
      :view ui.views.pages.login/page
      :roles []
      :layout :public}]
