@@ -1,6 +1,7 @@
 (ns ui.views.components.main-header
   (:require
    [reagent.core]
+   [reitit.frontend.easy]
    ["@heroicons/react/24/solid" :as solid-icons-24]))
 
 (defn view
@@ -14,11 +15,16 @@
      (if user-email
        [:div.flex.items-center.gap-x-2
         [:span.text-sm.font-medium.text-success user-email]
-        [:button.btn.btn-outline.btn-sm
+        [:a.btn.btn-outline.btn-sm
          {:on-click on-logout
           :aria-label "Logout From Session"}
          "LOGOUT"]]
-       [:span.text-sm.font-medium.text-error "Invalid Session"])]]])
+       [:div.flex.items-center.gap-x-2
+        [:span.text-sm.font-medium.text-success user-email]
+        [:a.btn.btn-outline.btn-sm
+         {:href :ui.routes.pages/login
+          :aria-label "Logout From Session"}
+         "LOGIN"]])]]])
 
 
 

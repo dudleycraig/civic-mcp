@@ -21,51 +21,45 @@
 
 (defn get-routes [api session domain]
   ["/"
+   {:controllers [(ui.controllers.logout/controller api session)]
+    :layout :main}
 
-   ;; private routes
    [""
-    {:controllers [(ui.controllers.logout/controller api session)]
-     :layout :private}
+    {:name ::home
+     :controllers [(ui.controllers.authorization/controller session domain)]
+     :view ui.views.pages.home/view
+     :label "Home"
+     :icon solid-icons-24/HomeIcon
+     :roles []}]
 
-    [""
-     {:name ::home
-      :controllers [(ui.controllers.authorization/controller session domain)]
-      :view ui.views.pages.home/view
-      :label "Home"
-      :icon solid-icons-24/HomeIcon
-      :roles ["administrator"]}]
+   ["about"
+    {:name ::about
+     :controllers [(ui.controllers.authorization/controller session domain)]
+     :view ui.views.pages.about/view
+     :label "About"
+     :icon solid-icons-24/IdentificationIcon
+     :roles []}]
 
-    ["about"
-     {:name ::about
-      :controllers [(ui.controllers.authorization/controller session domain)]
-      :view ui.views.pages.about/view
-      :label "About"
-      :icon solid-icons-24/IdentificationIcon
-      :roles ["administrator"]}]
+   ["contact"
+    {:name ::contact
+     :controllers [(ui.controllers.authorization/controller session domain)]
+     :view ui.views.pages.contact/view
+     :label "Contact"
+     :icon solid-icons-24/AtSymbolIcon
+     :roles ["administrator"]}]
 
-    ["contact"
-     {:name ::contact
-      :controllers [(ui.controllers.authorization/controller session domain)]
-      :view ui.views.pages.contact/view
-      :label "Contact"
-      :icon solid-icons-24/AtSymbolIcon
-      :roles ["administrator"]}]]
-
-   ;; public routes
    ["login"
     {:name ::login
      :controllers [(ui.controllers.login/controller api session domain)]
      :view ui.views.pages.login/page
-     :roles []
-     :layout :public}]
+     :roles []}]
 
    ["error"
     {:name ::error
      :view ui.views.pages.error/view
      :label "Error"
      :icon solid-icons-24/ExclamationCircleIcon
-     :roles []
-     :layout :public}]])
+     :roles []}]])
 
 
 

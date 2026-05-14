@@ -1,6 +1,7 @@
 (ns ui.system.cache
   (:require
-   [integrant.core]))
+   [integrant.core]
+   [goog.memoize]))
 
 (defn init
   [configuration]

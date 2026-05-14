@@ -46,6 +46,7 @@
             (.then  (fn [json]
                       (swap! state assoc :status :dirty)
                       (let [payload (-> json js->clj ui.utilities/keywordize)]
+                        (. js/console log "Login Successful")
                         ((:save session) payload))
                       (reitit.frontend.easy/push-state :ui.routes.pages/home)))
             (.catch (fn [error]

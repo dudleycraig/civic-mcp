@@ -5,7 +5,8 @@
    [clojure.string]
    [reitit.frontend.easy]
    [clojure.spec.alpha]
-   [common.specs.user]))
+   [common.specs.user]
+   [ui.utilities]))
 
 (defn authorized?
   [session match]

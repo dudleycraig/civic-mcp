@@ -1,7 +1,8 @@
 (ns ui.utilities
   (:require
    [clojure.walk]
-   [clojure.string]))
+   [clojure.string]
+   [cljs.pprint]))
 
 (defn get-cookie
   [cookie-name]
@@ -38,6 +39,22 @@
      (fn [node] (when (and (vector? node) (map? (second node)) (= (key (second node)) value)) (reset! state (drop 2 node))) node)
      routes)
     @state))
+
+(defn get-authorized-routes
+  [routes session]
+  (let [user-roles (get ((:read session)) :user/roles [])]
+    (filter
+     (fn [[_path {route-roles :roles}]]
+       (if (empty? route-roles)
+         true
+         (some
+          (set route-roles)
+          (map :role/name user-roles))))
+     routes)))
+
+
+
+
 
 
 

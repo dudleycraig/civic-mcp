@@ -7,9 +7,14 @@
 
 (defn logout-handler
   [api session state _event]
+
+  ;; NOTE: this also triggers the ui.system.session/sync method which is asynchronous
   ((:clear session))
+
   (->
    ((:post-logout api))
+
+   ;; TODO: add spinner predicated on (-> session :state :status)
    (.then (fn [response]
             (if (. response -ok)
               (do

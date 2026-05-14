@@ -52,20 +52,26 @@
     (for [[_route-path route] routes]
       (nav-item match-name route))]])
 
+(defn get-main-routes [routes session]
+  (-> routes 
+      (ui.utilities/get-routes-by-key-value :layout :main)
+      (ui.utilities/get-authorized-routes session)))
+
 (defn view
-  [{routes :routes match-name :match-name}]
-  (let [private-routes (ui.utilities/get-routes-by-key-value routes :layout :private)]
+  [{routes :routes session :session match-name :match-name}]
+  (let [
+        authorized-routes (get-main-routes routes session)]
     [:<>
      [:div.navbar-start
       [:div.dropdown
        [:div.btn.btn-ghost.lg:hidden {:tab-index "0" :role "button" :aria-label "Toggle Navigation Menu"}
         [svg]]
-       [menu {:routes private-routes :match-name match-name :device :mobile}]]
+       [menu {:routes authorized-routes :match-name match-name :device :mobile}]]
       [:div.btn.btn-ghost.text-xl.font-black company-text]]
 
      [:div.navbar-center.hidden.lg:flex
       {:class "lg:flex"}
-      [menu {:routes private-routes :match-name match-name :device :desktop}]]]))
+      [menu {:routes authorized-routes :match-name match-name :device :desktop}]]]))
 
 
 
