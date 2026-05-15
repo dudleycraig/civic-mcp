@@ -9,8 +9,8 @@
    [common.entities]))
 
 (integrant.repl/set-prep!
-  (fn []
-    (api.system.services/create-system :dev)))
+ (fn []
+   (api.system.services/create-system :dev)))
 
 (defmethod
   integrant.core/resume-key
@@ -21,19 +21,11 @@
 (defn provision!
   []
   (if-let [database (get integrant.repl.state/system :api.system.database/service)]
-    (let [transact-worker (get-in database [:workers :transact])]
-      (common.schemas/provision! transact-worker)
-      (common.entities/provision! transact-worker)
+    (let [{transact-database-schemas :transact/schemas transact-database-entities :transact/entities} database]
+      (common.schemas/provision! transact-database-schemas)
+      (common.entities/provision! transact-database-entities)
       :done)
-    (println "Database service not found in system state.")))
-
-(defn db []
-  (get integrant.repl.state/system :api.system.database/service))
-
-#_(defn query
-  [q & args]
-  (let [query-fn (get-in (db) [:workers :query])]
-    (apply query-fn q args)))
+    (throw (Exception. "Failed retrieving datomic instance from system"))))
 
 (comment
   (-> "PROFILE" System/getenv keyword)

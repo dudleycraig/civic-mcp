@@ -40,12 +40,19 @@
             (clj->js {:method "GET"
                       :credentials (if (:cors http) "include" "same-origin")})))
 
+(defn get-wards
+  [{{http :http} :ui}]
+  (js/fetch (str (:base-url http) "/administrator/wards")
+            (clj->js {:method "GET"
+                      :credentials (if (:cors http) "include" "same-origin")})))
+
 (defmethod integrant.core/init-key ::service
   [_ {configuration :configuration}]
   {:post-login            (partial post-login configuration)
    :post-logout           (partial post-logout configuration)
    :get-csrf              (partial get-csrf configuration)
-   :get-session-verify    (partial get-session-verify configuration)})
+   :get-session-verify    (partial get-session-verify configuration)
+   :get-wards             (partial get-wards configuration)})
 
 (defmethod integrant.core/halt-key! ::service
   [_ _]

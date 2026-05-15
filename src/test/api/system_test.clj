@@ -13,12 +13,9 @@
   (when-not (deref system)
     (let [new-system (api.system.services/init :test)]
       (reset! system new-system)
-      (let [{{transact-worker! :transact query-worker :query} :workers} (get new-system :api.system.database/service)]
-        (common.schemas/provision! transact-worker!)
-        (common.entities/provision! transact-worker!)
-        #_(let [roles (query-worker '[:find (pull ?e [:role/name :role/description])
-                                      :where [?e :role/name]])]
-            (println "provisioned roles ..." roles))))))
+      (let [{transact-database-schemas :transact/schemas transact-database-entities :transact/entities query-database :query} (get new-system :api.system.database/service)]
+        (common.schemas/provision! transact-database-schemas)
+        (common.entities/provision! transact-database-entities)))))
 
 (defn stop!
   "Halts the system and clears the state."

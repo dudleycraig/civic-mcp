@@ -19,7 +19,8 @@
    [api.routes.administrator]
    [api.routes.ping]
    [api.routes.user]
-   [api.routes.resources]))
+   [api.routes.resources]
+   [api.routes.ward]))
 
 (defn exception-middleware
   []
@@ -102,7 +103,8 @@
    (api.routes.administrator/get-routes
     authentication
      ;; add additional administrator routes here
-    (api.routes.user/get-routes database))
+    (api.routes.user/get-routes database)
+    (api.routes.ward/get-routes database))
 
    (api.routes.resources/get-routes)])
 

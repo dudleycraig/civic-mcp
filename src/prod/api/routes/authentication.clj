@@ -79,9 +79,9 @@
      :middleware  [[buddy.auth.middleware/wrap-authentication authentication]
                    (csrf-middleware)]
      :post        {:summary   "instantiates a session"
-                   :handler   (fn [{{{query-worker :query} :workers} :database configuration :configuration :as request}]
+                   :handler   (fn [{{query-database :query} :database configuration :configuration :as request}]
                                 (let [{email :user/email password :user/password} (decode-basic-authentication request)]
-                                  (if-let [[[private-user]] (when (and email password) (common.entities.user/get-user-by-email query-worker email))]
+                                  (if-let [[[private-user]] (when (and email password) (common.entities.user/get-user-by-email query-database email))]
                                     (if-let [public-user (and private-user (buddy.hashers/check password (:user/hash private-user)) (common.entities.user/private->public private-user))]
                                       (login-success-handler configuration public-user)
                                       (login-error-handler configuration))

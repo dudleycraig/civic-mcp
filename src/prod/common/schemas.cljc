@@ -7,11 +7,18 @@
 
 (defn provision!
   [transact!]
-  (transact!
-   (concat
-    common.schemas.role/schema
-    common.schemas.user/schema
-    common.schemas.ward/schema)))
+  (->>
+   #?(:clj
+      (concat
+       common.schemas.role/schema
+       common.schemas.user/schema
+       common.schemas.ward/schema)
+      :cljs
+      (merge
+       common.schemas.role/schema
+       common.schemas.user/schema
+       common.schemas.ward/schema))
+   (transact!)))
 
 
 

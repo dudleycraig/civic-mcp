@@ -17,7 +17,7 @@
       (some (set route-roles) (map :role/name user-roles)))))
 
 (defn controller
-  [session _domain]
+  [session _database]
   {:name      ::controller
    :state     nil
    :identity  (fn [match] match)

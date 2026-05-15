@@ -32,9 +32,9 @@
       (.warn js/console "Route " (get-in current-match [:data :name]) " superseded by Route " (get-in proposed-match [:data :name])))))
 
 (defmethod integrant.core/init-key ::service
-  [_ {api :api session :session domain :domain}]
+  [_ {api :api session :session database :database}]
   (let [state  (reagent.core/atom nil)
-        routes (ui.routes.pages/get-routes api session domain)
+        routes (ui.routes.pages/get-routes api session database)
         router (->>
                 {:data
                  {:coercion reitit.coercion.spec/coercion}

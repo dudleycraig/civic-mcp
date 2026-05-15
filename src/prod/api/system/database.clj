@@ -8,26 +8,18 @@
    [common.schemas]
    [common.entities]))
 
-(defn transact!
-  "transacts data into database. optionally pass a spec to validate data."
-  ([connection data]
-   (datomic.client.api/transact connection {:tx-data data}))
-  ([connection spec data]
+(defn transact-handler
+  ([database-state data]
+   (datomic.client.api/transact database-state {:tx-data data}))
+  ([database-state spec data]
    (if (clojure.spec.alpha/valid? spec data)
-     (transact! connection data)
-     (throw
-      (ex-info
-       "Transact Error"
-       {::transact!
-        {:message/status :error
-         :message/code 500
-         :message/data (clojure.spec.alpha/explain spec data)}})))))
+     (transact-handler database-state data)
+     (throw (Exception. (clojure.spec.alpha/explain-data spec data))))))
 
-(defn query
-  "query against database snapshot value"
-  [connection query & args]
-  (let [value (datomic.client.api/db connection)]
-    (datomic.client.api/q {:query query :args (vec (cons value args))})))
+(defn query-handler
+  [database-state query & args]
+  (let [data (datomic.client.api/db database-state)]
+    (datomic.client.api/q {:query query :args (vec (cons data args))})))
 
 (defmethod integrant.core/init-key ::service
   [_ {{{{{client-config :client db-name :db-name} :datomic} :database} :api :as configuration} :configuration}]
@@ -36,14 +28,18 @@
     (when (= (:server-type client-config) :datomic-local)
       (clojure.tools.logging/info "Provisioning test database ...")
       (datomic.client.api/create-database client {:db-name db-name}))
-    (let [connection (datomic.client.api/connect client {:db-name db-name})]
-      {:db-name     db-name
-       :client      client
-       :connection  connection
-       :workers     {:transact (partial api.system.database/transact! connection)
-                     :query    (partial query connection)}})))
+    (let [state (datomic.client.api/connect client {:db-name db-name})]
+      {:state             state
+       :db-name           db-name
+       :client            client
+       :transact/schemas  (partial transact-handler state)
+       :transact/entities (partial transact-handler state)
+       :query             (partial query-handler state)})))
 
 (defmethod integrant.core/halt-key! ::service
   [_ _]
   (clojure.tools.logging/info "Halting Database Service...")
   nil)
+
+
+

@@ -32,12 +32,12 @@
 (clojure.test/use-fixtures :once
   (fn [f]
     (api.system-test/start!)
-    (let [{{transact-worker! :transact query-worker :query} :workers} (api.system-test/get-database)
-          private-users (common.entities.user/add! transact-worker! admin-test-transient-user guest-test-transient-user)]
+    (let [{transact-database-entities :transact/entities} (api.system-test/get-database)
+          private-users (common.entities.user/add! transact-database-entities admin-test-transient-user guest-test-transient-user)]
       (try
         (f)
         (finally
-          (apply common.entities.user/remove! transact-worker! (map :user/uuid private-users))
+          (apply common.entities.user/remove! transact-database-entities (map :user/uuid private-users))
           (api.system-test/stop!))))))
 
 (defn decode-json [body]

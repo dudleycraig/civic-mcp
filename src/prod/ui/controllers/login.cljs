@@ -65,7 +65,7 @@
                 (. js/console error "CSRF Error:" error)))))
 
 (defn controller
-  [api session _domain]
+  [api session _database]
   (let [state (reagent.core/atom {:status :inert})]
     {:name      ::controller
      :state     state
