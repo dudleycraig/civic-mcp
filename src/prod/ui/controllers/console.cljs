@@ -19,20 +19,20 @@
                    (let [wards (->> (query-database `[:find (pull ?e [*]) :where [?e :ward/id]])
                                     (map first)
                                     (vec))]
-                     (swap! state assoc :status :ready :data wards)))))
+                     (swap! state assoc :status :ready :wards wards)))))
 
         (.catch (fn [error]
-                  (swap! state assoc :status :error :data [])
+                  (swap! state assoc :status :error :wards [])
                   (. js/console log "Wards Error: " error))))))
 
 (defn controller
   [api database]
-  (let [state (reagent.core/atom {:status :inert :data []})]
+  (let [state (reagent.core/atom {:status :inert :wards []})]
     {:name      ::controller
      :state     state
      :identity  (fn [match] match)
      :start     (fn [match] (fetch-wards! api database state))
      :stop      (fn [match]
-                  (reset! state {:status :inert :data []}))}))
+                  (reset! state {:status :inert :wards []}))}))
 
 

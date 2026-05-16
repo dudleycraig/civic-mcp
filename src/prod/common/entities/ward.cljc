@@ -1,12 +1,12 @@
 (ns common.entities.ward
   (:require
    [clojure.spec.alpha]
+   [common.specs.ward]
    #? (:clj [clojure.data.json])
-   [clojure.java.io]
+   #? (:clj [clojure.java.io])
    #? (:clj [clojure.tools.logging])
    #? (:clj [datomic.client.api])
-   #? (:cljs ["jsts/org/locationtech/jts/geom" :as jsts-geom])
-   [common.specs.ward])
+   #? (:cljs ["jsts/org/locationtech/jts/geom" :as jsts-geom]))
   #? (:clj
       (:import
        [org.locationtech.jts.simplify DouglasPeuckerSimplifier]

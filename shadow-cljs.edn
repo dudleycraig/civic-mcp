@@ -7,13 +7,14 @@
               :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3001"
                         "Access-Control-Allow-Methods" "GET, PUT, POST, DELETE, OPTIONS"
                         "Access-Control-Allow-Credentials" "true"
-                        "Access-Control-Allow-Headers" "x-jnet-api, x-csrf-token, x-requested-with, accept, accept-encoding, accept-language, set-cookie, authorization, content-type, origin"}
-              }}
+                        "Access-Control-Allow-Headers" "x-jnet-api, x-csrf-token, x-requested-with, accept, accept-encoding, accept-language, set-cookie, authorization, content-type, origin"}}}
 
  :nrepl     {:port 7888}
 
  :builds    {:ui
              {:target           :browser
+              :js-options       {:js-provider :shadow
+                                 :local-index true}
               :output-dir       "resources/public/js"
               :asset-path       "/js"
               :modules          {:ui {:init-fn ui.main/init}}
