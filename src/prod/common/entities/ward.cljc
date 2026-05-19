@@ -10,7 +10,8 @@
   #? (:clj
       (:import
        [org.locationtech.jts.simplify DouglasPeuckerSimplifier]
-       [org.locationtech.jts.geom GeometryFactory Coordinate PrecisionModel Polygon MultiPolygon LinearRing])))
+       [org.locationtech.jts.geom GeometryFactory Coordinate PrecisionModel Polygon MultiPolygon LinearRing]
+       [org.locationtech.proj4j CRSFactory CoordinateTransformFactory ProjCoordinate])))
 
 (defn calculate-bbox
   [coords]
@@ -21,6 +22,29 @@
      :max-x (double (apply max lons))
      :min-y (double (apply min lats))
      :max-y (double (apply max lats))}))
+
+(defn map-coords
+  [f coords]
+  (cond
+    (and (sequential? coords) (number? (first coords))) (f coords)
+    (sequential? coords) (mapv (partial map-coords f) coords)
+    :else coords))
+
+#?(:clj
+   (defn transform-coords
+     [coords]
+     (let [crs-factory (CRSFactory.)
+           wgs84 (.createFromName crs-factory "EPSG:4326")
+           web-mercator (.createFromName crs-factory "EPSG:3857")
+           ct-factory (CoordinateTransformFactory.)
+           transform (.createTransform ct-factory wgs84 web-mercator)
+
+           transform-point (fn [pt]
+                             (let [source (ProjCoordinate. (double (first pt)) (double (second pt)))
+                                   target (ProjCoordinate.)]
+                               (.transform transform source target)
+                               [(.x target) (.y target)]))]
+       (map-coords transform-point coords))))
 
 (defn add!
   [transact-database-entities entities]
@@ -64,32 +88,42 @@
      (let [props  (get feature "properties")
            geom   (get feature "geometry")
            type   (get geom "type")
-           coords (get geom "coordinates")
+           coords (transform-coords (get geom "coordinates"))
            bbox   (calculate-bbox coords)
            json   (clojure.data.json/write-str coords)]
-       (merge
-        {:ward/id                (long (get props "ID"))
-         :ward/code              (long (get props "WD_CODE"))
-         :ward/number            (str (get props "WD_NO"))
-         :ward/gav-primary       (long (get props "GAVPrimary"))
-         :ward/geometry-type     (keyword type)
-         :ward/min-x             (:min-x bbox)
-         :ward/max-x             (:max-x bbox)
-         :ward/min-y             (:min-y bbox)
-         :ward/max-y             (:max-y bbox)}
-        (if (> (count json) 4000)
-          (let [factory (GeometryFactory. (PrecisionModel.) 4326)
-                jts-geom (coords->jts factory type coords)
-                ;; Increase tolerance until size is under 4KB
-                simplified-json (loop [tolerance 0.0001]
-                                  (let [s (DouglasPeuckerSimplifier/simplify jts-geom tolerance)
-                                        sj (clojure.data.json/write-str (jts->coords s))]
-                                    (if (or (<= (count sj) 4000) (> tolerance 0.1))
-                                      sj
-                                      (recur (* tolerance 2)))))]
-            {:ward/coordinates-json simplified-json
-             :ward/simplified true})
-          {:ward/coordinates-json json})))))
+       (if (<= (count json) 4000)
+         (merge
+          {:ward/id                (long (get props "ID"))
+           :ward/code              (long (get props "WD_CODE"))
+           :ward/number            (str (get props "WD_NO"))
+           :ward/gav-primary       (long (get props "GAVPrimary"))
+           :ward/geometry-type     (keyword type)
+           :ward/min-x             (:min-x bbox)
+           :ward/max-x             (:max-x bbox)
+           :ward/min-y             (:min-y bbox)
+           :ward/max-y             (:max-y bbox)
+           :ward/coordinates-json  json})
+         (let [factory (GeometryFactory. (PrecisionModel.) 3857)
+               jts-geom (coords->jts factory type coords)
+               ;; Iteratively simplify until size is under 3500 (safer margin)
+               simplified-json (loop [tolerance 100.0]
+                                 (let [s (DouglasPeuckerSimplifier/simplify jts-geom tolerance)
+                                       sj (clojure.data.json/write-str (jts->coords s))]
+                                   (if (or (<= (count sj) 3500) (> tolerance 10000.0))
+                                     sj
+                                     (recur (* tolerance 2.0)))))]
+           (merge
+            {:ward/id                (long (get props "ID"))
+             :ward/code              (long (get props "WD_CODE"))
+             :ward/number            (str (get props "WD_NO"))
+             :ward/gav-primary       (long (get props "GAVPrimary"))
+             :ward/geometry-type     (keyword type)
+             :ward/min-x             (:min-x bbox)
+             :ward/max-x             (:max-x bbox)
+             :ward/min-y             (:min-y bbox)
+             :ward/max-y             (:max-y bbox)
+             :ward/coordinates-json  simplified-json
+             :ward/simplified        true}))))))
 
 #?(:clj
    (defn fetch-geojson

@@ -1,20 +1,24 @@
 import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky, ContactShadows } from '@react-three/drei';
-import { Scene } from './Scene';
-import { World } from './World';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 
-export default function Diorama({ data, options }) {
+export default function Diorama({ children, options }) {
   return (
-    <Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
+    <Canvas 
+      shadows 
+      dpr={[1, 2]}
+      gl={{ antialias: true }}
+    >
       <color attach="background" args={[options.theme === 'dark' ? '#111' : '#eee']} />
+      <PerspectiveCamera makeDefault position={[0, 5, 10]} fov={50} />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+
       <Suspense fallback={null}>
-        <Scene options={options} />
-        <World data={data} />
-        <Sky sunPosition={[100, 20, 100]} />
-        <ContactShadows opacity={0.5} scale={10} blur={1} far={10} />
+        {children}
       </Suspense>
+
       <OrbitControls makeDefault />
     </Canvas>
   );
-};
+}
