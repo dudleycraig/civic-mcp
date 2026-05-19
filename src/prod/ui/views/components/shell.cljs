@@ -4,7 +4,7 @@
 (defn view
   [props & children]
   (into
-   [:div.w-full.h-full.flex.flex-col
+   [:div.w-full.h-full.flex.flex-col.relative
     (reagent.core/merge-props
      (dissoc props :router)
      {:role "application"

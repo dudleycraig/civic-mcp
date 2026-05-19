@@ -14,16 +14,24 @@
                    (. response json)
                    (throw (js/Error. "Failed fetching wards")))))
         (.then (fn [json]
-                 (let [wards (-> json js->clj ui.utilities/keywordize)]
+                 (let [wards (->> (js->clj json)
+                                  (ui.utilities/keywordize)
+                                  (mapv (fn [ward]
+                                          (-> ward
+                                              (update :ward/geometry-type keyword)
+                                              (dissoc :db/id)))))]
                    (common.entities.ward/add! transact-database-entities wards)
-                   (let [wards (->> (query-database `[:find (pull ?e [*]) :where [?e :ward/id]])
-                                    (map first)
-                                    (vec))]
+                   (let [wards (->> (query-database '[:find (pull ?e [*]) :where [?e :ward/id]])
+                                    (mapv (fn [[ward]]
+                                            (if-let [json (:ward/coordinates-json ward)]
+                                              (assoc ward :ward/geometry {:type (name (:ward/geometry-type ward))
+                                                                          :coordinates (js->clj (js/JSON.parse json))})
+                                              ward))))]
                      (swap! state assoc :status :ready :wards wards)))))
 
         (.catch (fn [error]
                   (swap! state assoc :status :error :wards [])
-                  (. js/console log "Wards Error: " error))))))
+                  (. js/console error "Wards Error: " error))))))
 
 (defn controller
   [api database]

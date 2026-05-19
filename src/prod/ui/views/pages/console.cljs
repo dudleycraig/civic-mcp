@@ -5,7 +5,8 @@
 
 (defn view
   [{{{{{console-state :state} :ui.controllers.console/controller} :controllers} :data} :match}]
-  [:div.w-full.h-screen
-   [:> Diorama
-    {:data    (-> console-state deref clj->js)
-     :options (clj->js {:theme "dark" :wireframe false})}]])
+  (reagent.core/with-let [data (reagent.core/track #(clj->js @console-state))]
+    [:div.w-full.h-screen
+     [:> Diorama
+      {:data    @data
+       :options #js {:theme "dark" :wireframe false}}]]))

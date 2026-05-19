@@ -30,7 +30,7 @@ The user will make the actual code changes unless they ask you directly to write
 
 ## UI
 
-- The UI is the primary interface, an SPA and PWA integrating GIS and 3D (three.js).
+- The UI is the primary interface, an SPA and PWA.
 - The UI source code is hosted in `src/prod/ui`.
 - The UI namespaces are prefixed by "ui".
 - The UI is based off of deps.edn, Shadow-cljs, Integrant, Reitit, Reagent, Datalog/Datascript and TailwindCSS.
@@ -42,6 +42,16 @@ The user will make the actual code changes unless they ask you directly to write
 - `shadow-cljs.edn` is read and disseminated via `src/system/configuration.clj`.
 - In development, the UI is instantiated via the console command `source bin/env.sh && PROFILE=dev npm run shadow:watch`.
 - In development, once instantiated, the UI is available within a browser at http://127.0.0.1:3001 (bin/env.sh pending).
+
+## UI-diorama
+
+- The Diorama is a dependency of the UI, hosting the 3D GIS canvas.
+- The Diorama, as much as possible, is a function of the data provided by the UI.
+- The Diorama source code is hosted in `src/jsx/diorama`.
+- The Diorama is required within the UI namespace ui.views.pages.console.
+- The Diorama is based off of React (.jsx), react-three-fiber and three.js.
+- The Diorama is listed as an npm dependency within `package.json`.
+- The Diorama has its own watch process via npm (`npm run diorama:watch` for development).
 
 ## CLI
 

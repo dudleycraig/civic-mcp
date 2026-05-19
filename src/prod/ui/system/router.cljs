@@ -13,23 +13,25 @@
 
 (defn route-handler
   [state proposed-match]
-  (let [current-match @state
-        current-controllers (get current-match :route/controllers [])
-        applied-controllers (reitit.frontend.controllers/apply-controllers current-controllers proposed-match)
-        controller-registry (reduce
-                             (fn [accumulator controller]
-                               (if (:name controller)
-                                 (assoc accumulator (:name controller) (select-keys controller [:state]))
-                                 accumulator))
-                             {}
-                             applied-controllers)]
+  (if proposed-match
+    (let [current-match @state
+          current-controllers (get current-match :route/controllers [])
+          applied-controllers (reitit.frontend.controllers/apply-controllers current-controllers proposed-match)
+          controller-registry (reduce
+                               (fn [accumulator controller]
+                                 (if (:name controller)
+                                   (assoc accumulator (:name controller) (select-keys controller [:state]))
+                                   accumulator))
+                               {}
+                               applied-controllers)]
 
-    (if (= current-match @state)
-      (reset! state (->
-                     proposed-match
-                     (assoc :route/controllers applied-controllers)
-                     (assoc-in [:data :controllers] controller-registry)))
-      (.warn js/console "Route " (get-in current-match [:data :name]) " superseded by Route " (get-in proposed-match [:data :name])))))
+      (if (= current-match @state)
+        (reset! state (->
+                       proposed-match
+                       (assoc :route/controllers applied-controllers)
+                       (assoc-in [:data :controllers] controller-registry)))
+        (.warn js/console "Route " (get-in current-match [:data :name]) " superseded by Route " (get-in proposed-match [:data :name]))))
+      (reitit.frontend.easy/replace-state :ui.routes.pages/error)))
 
 (defmethod integrant.core/init-key ::service
   [_ {api :api session :session database :database}]

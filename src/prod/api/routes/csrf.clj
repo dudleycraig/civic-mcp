@@ -1,11 +1,13 @@
 (ns api.routes.csrf
   (:require
-   [ring.util.response]))
+   [ring.util.response]
+   [api.routes.authentication]))
 
 (defn get-routes
   []
   ["/csrf"
    {:name        ::csrf
+    :middleware  [(api.routes.authentication/csrf-middleware)]
     :get         {:summary "retrieve CSRF"
                   :handler (fn [_]
                              (-> (ring.util.response/response nil)
